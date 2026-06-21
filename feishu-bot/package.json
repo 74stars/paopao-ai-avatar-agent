@@ -1,0 +1,14 @@
+{
+  "name": "paopao-feishu-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/server.js && node --check src/paopao.js && node --check src/feishu.js && node --check src/store.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+
