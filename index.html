@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paopao 泡泡｜AI 数字分身 Agent</title>
+    <style>
+      :root {
+        --ink: #14263a;
+        --muted: #5d7085;
+        --blue: #327fc1;
+        --cyan: #bfeef5;
+        --warm: #fff3dd;
+        --line: rgba(50, 127, 193, 0.16);
+        --card: rgba(255, 255, 255, 0.78);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+        background:
+          linear-gradient(120deg, rgba(238, 248, 255, 0.92), rgba(191, 238, 245, 0.45), rgba(255, 243, 221, 0.6)),
+          url("./assets/paopao-bg.png") center / cover fixed;
+      }
+      main {
+        width: min(1120px, calc(100vw - 32px));
+        margin: 0 auto;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+        gap: 34px;
+        align-items: center;
+        min-height: 92vh;
+        padding: 48px 0;
+      }
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0 0 20px;
+        font-size: clamp(44px, 8vw, 82px);
+        line-height: 1.04;
+        letter-spacing: 0;
+      }
+      .lead {
+        max-width: 690px;
+        color: #36536c;
+        font-size: 20px;
+        line-height: 1.85;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+      a {
+        color: inherit;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.72);
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .button.primary {
+        color: white;
+        background: linear-gradient(135deg, var(--blue), #66bdd1);
+        box-shadow: 0 18px 36px rgba(50, 127, 193, 0.24);
+      }
+      .preview {
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        border-radius: 18px;
+        background: var(--card);
+        box-shadow: 0 30px 90px rgba(45, 92, 132, 0.2);
+        overflow: hidden;
+      }
+      .preview img {
+        display: block;
+        width: 100%;
+      }
+      .section {
+        padding: 56px 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .card {
+        min-height: 220px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--card);
+        box-shadow: 0 18px 46px rgba(45, 92, 132, 0.12);
+      }
+      .card h3 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+      .card p,
+      li {
+        color: var(--muted);
+        line-height: 1.75;
+      }
+      .wide-card {
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.82);
+      }
+      code {
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgba(50, 127, 193, 0.1);
+      }
+      @media (max-width: 840px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .hero {
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Coze AI Avatar Agent</p>
+          <h1>Paopao 泡泡</h1>
+          <p class="lead">
+            一个面向个人长期成长的 AI 数字分身：持续记录用户的欲望、计划、阅读、地点、日程和现实世界输入，
+            通过长期记忆、RAG 和角色化 LLM，主动提醒、鼓励并推动用户行动。
+          </p>
+          <div class="actions">
+            <a class="button primary" href="./README.md">查看 README</a>
+            <a class="button" href="./docs/coze-workflow.md">Coze Workflow</a>
+            <a class="button" href="./docs/resume-snippets.md">简历话术</a>
+            <a class="button" href="./prototype/index.html">打开原型</a>
+          </div>
+        </div>
+        <div class="preview">
+          <img src="./assets/paopao-dashboard.png" alt="Paopao dashboard preview" />
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="eyebrow">Product Thinking</p>
+        <div class="grid">
+          <article class="card">
+            <h3>不是人设聊天</h3>
+            <p>泡泡探索的是 AI 分身如何从角色互动走向长期记忆、真实生活连接和主动成长牵引。</p>
+          </article>
+          <article class="card">
+            <h3>长期记忆系统</h3>
+            <p>设计 Raw Archive、Structured Memory、Vector Memory 与 Self Model，支持 RAG 检索与画像迭代。</p>
+          </article>
+          <article class="card">
+            <h3>主动正向牵引</h3>
+            <p>不把用户困在负面标签里，而是将欲望、思考和偏离转化为计划、认知资产和下一步行动。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="wide-card">
+          <p class="eyebrow">MVP Scope</p>
+          <ul>
+            <li>飞书机器人骨架：事件接收、日志写入、自我模型更新。</li>
+            <li>Coze 工作流设计：输入分类、记忆抽取、RAG、自我模型、回复生成。</li>
+            <li>Prompt 体系：数字超我、正向显化、早晚提醒、日记复盘。</li>
+            <li>Web 原型：捕捉、日记、卡片、日程和蓝色温馨视觉方向。</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
