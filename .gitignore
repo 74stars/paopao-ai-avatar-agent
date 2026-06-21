@@ -1,0 +1,10 @@
+node_modules/
+.env
+*.log
+data/*.jsonl
+data/*.json
+data/*.sqlite
+data/*.db
+feishu-bot/data/
+.DS_Store
+Thumbs.db
