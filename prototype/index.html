@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>泡泡 Paopao</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="left-rail" aria-label="泡泡书架">
+        <div class="brand-block">
+          <div class="brand-orb" aria-hidden="true">泡</div>
+          <div>
+            <p class="eyebrow">Paopao</p>
+            <h1>泡泡</h1>
+          </div>
+        </div>
+
+        <div class="year-card">
+          <p class="eyebrow">2026 diary</p>
+          <div class="book-spine active" data-month="06">
+            <span>六月</span>
+            <strong>21</strong>
+          </div>
+          <div class="book-spine">
+            <span>五月</span>
+            <strong>31</strong>
+          </div>
+          <div class="book-spine">
+            <span>四月</span>
+            <strong>30</strong>
+          </div>
+        </div>
+
+        <div class="signal-card">
+          <p class="eyebrow">today</p>
+          <div class="weather-line">
+            <span>上海</span>
+            <strong>25°C</strong>
+          </div>
+          <p>小雨转晴 · 适合推进</p>
+        </div>
+      </section>
+
+      <section class="main-stage">
+        <header class="topbar">
+          <nav class="tabs" aria-label="视图">
+            <button class="tab active" data-view="capture">捕捉</button>
+            <button class="tab" data-view="diary">日记</button>
+            <button class="tab" data-view="cards">卡片</button>
+            <button class="tab" data-view="schedule">日程</button>
+          </nav>
+          <button class="ghost-button" id="openProfile" title="重新调整泡泡人格">人格</button>
+        </header>
+
+        <section class="hero-panel">
+          <div>
+            <p class="eyebrow">your cyber self</p>
+            <h2 id="heroTitle">我会先替你接住念头。</h2>
+            <p id="heroCopy">今天的碎片会在夜里自动成册，原始的你和被照亮的你都会留下。</p>
+          </div>
+          <div class="pulse-stack" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </section>
+
+        <section class="view active" id="captureView">
+          <div class="capture-grid">
+            <article class="composer">
+              <div class="composer-head">
+                <div>
+                  <p class="eyebrow">inbox</p>
+                  <h3>灵感入口</h3>
+                </div>
+                <select id="inputType" aria-label="输入类型">
+                  <option value="text">文字</option>
+                  <option value="voice">语音转写</option>
+                  <option value="image">画面描述</option>
+                  <option value="link">链接感想</option>
+                </select>
+              </div>
+              <textarea id="rawInput" placeholder="把刚刚闪过的念头丢给我。"></textarea>
+              <div class="composer-actions">
+                <button class="primary-button" id="saveEntry">收进今日</button>
+                <button class="soft-button" id="talkMode">和我对谈</button>
+              </div>
+            </article>
+
+            <article class="reply-panel">
+              <p class="eyebrow">paopao</p>
+              <h3 id="replyTitle">早上好，今天继续扩张你的现实半径。</h3>
+              <p id="replyText">我会记录你的欲望、计划、判断和行动线索，慢慢成为更清醒、更有力量的数字分身。</p>
+              <div class="mood-row" aria-label="状态">
+                <button data-mood="行动">行动</button>
+                <button data-mood="扩张">扩张</button>
+                <button data-mood="深思">深思</button>
+                <button data-mood="显化">显化</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="entries-strip" id="entriesStrip" aria-live="polite"></div>
+        </section>
+
+        <section class="view" id="diaryView">
+          <article class="diary-page">
+            <div class="page-meta">
+              <span>2026 / 06 / 21</span>
+              <span id="diaryMood">情绪：灵感</span>
+            </div>
+            <h3>今日自动日记</h3>
+            <div id="diaryText" class="diary-text"></div>
+            <button class="primary-button" id="refreshDiary">重新成册</button>
+          </article>
+        </section>
+
+        <section class="view" id="cardsView">
+          <div class="card-workbench">
+            <article class="share-card" id="shareCard">
+              <p>泡泡摘录</p>
+              <h3 id="cardQuote">人也许并不是靠目标活着，而是靠某种隐秘的期待。</h3>
+              <span id="cardDate">2026.06.21</span>
+            </article>
+            <div class="card-controls">
+              <p class="eyebrow">export</p>
+              <h3>社交媒体卡片</h3>
+              <label>
+                摘录
+                <textarea id="cardInput"></textarea>
+              </label>
+              <button class="primary-button" id="renderCard">生成卡片</button>
+              <button class="soft-button wide" id="downloadCard">下载 PNG</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="scheduleView">
+          <div class="schedule-grid">
+            <article class="schedule-panel">
+              <p class="eyebrow">calendar</p>
+              <h3>今日节奏</h3>
+              <div id="scheduleList"></div>
+              <div class="mini-form">
+                <input id="scheduleInput" placeholder="19:30 写论文 / 散步 / 给朋友回消息" />
+                <button class="soft-button" id="addSchedule">添加</button>
+              </div>
+            </article>
+            <article class="nudge-panel">
+              <p class="eyebrow">care</p>
+              <h3>泡泡提醒</h3>
+              <p id="nudgeText">如果现在是推进关键目标的时间，我会把外部信息收进记忆库，然后把你拉回更高收益的行动。</p>
+              <input id="goalInput" value="距离七年全面开花计划第一个里程碑还有 14 天" />
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="onboarding" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
+      <div class="onboard-card">
+        <p class="eyebrow">first meeting</p>
+        <h2 id="onboardTitle">我想先认识你一点点。</h2>
+        <p class="onboard-copy">你可以先描述你的野心、欲望、计划、榜样和理想自我。之后我会边记录边升级。</p>
+        <div class="choice-grid">
+          <button data-profile="数字分身">构建数字分身</button>
+          <button data-profile="七年跃迁">七年跃迁计划</button>
+          <button data-profile="理想自我">理想自我画像</button>
+          <button data-profile="边用边升级">边用边升级</button>
+        </div>
+        <textarea id="profileText" placeholder="例如：我要在 23-30 岁完成认知、财富、领导力、作品和世界经验的全面跃迁。"></textarea>
+        <button class="primary-button wide" id="finishOnboard">开始今日</button>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
