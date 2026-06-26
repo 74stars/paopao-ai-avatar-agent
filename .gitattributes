@@ -1,0 +1,6 @@
+preview/** linguist-documentation
+prototype/** linguist-documentation
+index.html linguist-documentation
+*.md linguist-documentation
+*.webp linguist-vendored
+*.png linguist-vendored
