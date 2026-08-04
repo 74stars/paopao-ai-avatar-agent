@@ -63,6 +63,7 @@ flowchart LR
 - `preview/`：零依赖在线活书房预览。
 - `prototype/`：早期网页原型，保留作产品演进记录。
 - `feishu-bot/`：早期飞书消息入口骨架。
+- `docs/PAOPAO-V1-PROJECT-SPEC.md`：成熟 V1 的完整链路、实施路线、验收标准与图片质量规范。
 - `docs/`：产品架构、Prompt、Coze workflow、指标与日志。
 
 ## 当前路线
