@@ -1,0 +1,224 @@
+[
+  {
+    "id": "desire-goal-01",
+    "currentText": "李雷希望今年完成一次长途骑行，计划夏天出发。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.9, "evidence": "希望今年完成一次长途骑行" },
+      "summary": { "text": "李雷希望今年完成一次长途骑行，计划夏天出发。", "confidence": 0.9, "evidence": ["希望今年完成一次长途骑行"] },
+      "entities": { "items": [{ "type": "person", "name": "李雷", "confidence": 0.9, "evidence": "李雷" }] },
+      "goals": { "items": [{ "title": "完成一次长途骑行", "confidence": 0.85, "evidence": "完成一次长途骑行" }] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "schedule-goal-02",
+    "currentText": "周六上午十点去图书馆还书，顺便借一本推理小说。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.9, "evidence": "去图书馆还书" },
+      "summary": { "text": "周六上午去图书馆还书并借推理小说。", "confidence": 0.9, "evidence": ["去图书馆还书"] },
+      "entities": {
+        "items": [
+          { "type": "place", "name": "图书馆", "confidence": 0.9, "evidence": "图书馆" },
+          { "type": "book", "name": "推理小说", "confidence": 0.8, "evidence": "推理小说" }
+        ]
+      },
+      "goals": { "items": [{ "title": "去图书馆还书", "confidence": 0.9, "evidence": "去图书馆还书" }] },
+      "nextActions": { "items": [{ "title": "借一本推理小说", "dueHint": "周六上午十点", "confidence": 0.7, "evidence": "借一本推理小说" }] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "place-other-03",
+    "currentText": "下周去杭州出差三天，住在西湖边的酒店。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "other", "confidence": 0.9, "evidence": "去杭州出差" },
+      "summary": { "text": "下周去杭州出差三天。", "confidence": 0.9, "evidence": ["去杭州出差"] },
+      "entities": {
+        "items": [
+          { "type": "place", "name": "杭州", "confidence": 0.95, "evidence": "杭州" },
+          { "type": "place", "name": "西湖", "confidence": 0.8, "evidence": "西湖" }
+        ]
+      },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "person-04",
+    "currentText": "妈妈今天打电话说周末来家里吃饭，带了我爱吃的红烧肉。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "person", "confidence": 0.9, "evidence": "妈妈" },
+      "summary": { "text": "妈妈周末来家里吃饭。", "confidence": 0.9, "evidence": ["妈妈"] },
+      "entities": { "items": [{ "type": "person", "name": "妈妈", "confidence": 0.95, "evidence": "妈妈" }] },
+      "goals": { "items": [{ "title": "周末和妈妈吃饭", "confidence": 0.8, "evidence": "周末来家里吃饭" }] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "reading-05",
+    "currentText": "读完了《百年孤独》，马尔克斯的魔幻现实主义让人着迷。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "reading", "confidence": 0.9, "evidence": "读完了《百年孤独》" },
+      "summary": { "text": "读完《百年孤独》，对马尔克斯的魔幻现实主义印象深刻。", "confidence": 0.9, "evidence": ["读完了《百年孤独》"] },
+      "entities": {
+        "items": [
+          { "type": "book", "name": "百年孤独", "confidence": 0.95, "evidence": "《百年孤独》" },
+          { "type": "person", "name": "马尔克斯", "confidence": 0.9, "evidence": "马尔克斯" }
+        ]
+      },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "thought-06",
+    "currentText": "今天想到，如果每周都留出半天不安排任何事，可能反而更高效。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "thought", "confidence": 0.9, "evidence": "如果每周都留出半天" },
+      "summary": { "text": "想到每周留半天空白可能更高效。", "confidence": 0.85, "evidence": ["如果每周都留出半天"] },
+      "entities": { "items": [] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "diary-07",
+    "currentText": "今天下午下了雨，我在阳台上坐了很久，什么都没做。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "diary", "confidence": 0.9, "evidence": "在阳台上坐了很久" },
+      "summary": { "text": "今天下午下雨，在阳台坐了很久。", "confidence": 0.9, "evidence": ["在阳台上坐了很久"] },
+      "entities": { "items": [] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "other-08",
+    "currentText": "小区门口新开了一家面包店，路过时闻到很香。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "other", "confidence": 0.9, "evidence": "新开了一家面包店" },
+      "summary": { "text": "小区门口新开了一家面包店。", "confidence": 0.9, "evidence": ["新开了一家面包店"] },
+      "entities": { "items": [{ "type": "place", "name": "面包店", "confidence": 0.9, "evidence": "面包店" }] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "wrong-class-sim-09",
+    "currentText": "打算报名三月的半程马拉松，现在开始每周跑三次。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.9, "evidence": "报名三月的半程马拉松" },
+      "summary": { "text": "计划报名三月半程马拉松，开始每周跑三次。", "confidence": 0.9, "evidence": ["报名三月的半程马拉松"] },
+      "entities": { "items": [] },
+      "goals": { "items": [{ "title": "报名三月的半程马拉松", "confidence": 0.9, "evidence": "报名三月的半程马拉松" }] },
+      "nextActions": { "items": [{ "title": "每周跑三次", "dueHint": "每周", "confidence": 0.8, "evidence": "每周跑三次" }] },
+      "needsUserReview": false
+    },
+    "simulate": "wrong-classification"
+  },
+  {
+    "id": "repair-sim-10",
+    "currentText": "老板周三下午要项目进展，我需要周二前整理好材料。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.9, "evidence": "整理好材料" },
+      "summary": { "text": "需要在周二前整理好项目材料。", "confidence": 0.9, "evidence": ["整理好材料"] },
+      "entities": { "items": [] },
+      "goals": { "items": [{ "title": "整理好项目材料", "confidence": 0.85, "evidence": "整理好材料" }] },
+      "nextActions": { "items": [{ "title": "周二前整理材料", "dueHint": "周二前", "confidence": 0.8, "evidence": "周二前整理好材料" }] },
+      "needsUserReview": false
+    },
+    "simulate": "repair"
+  },
+  {
+    "id": "mixed-11",
+    "currentText": "周六参加完婚礼后去机场接朋友，朋友带了一本《小王子》送给我。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.85, "evidence": "去机场接朋友" },
+      "summary": { "text": "周六参加婚礼后去机场接朋友。", "confidence": 0.9, "evidence": ["去机场接朋友"] },
+      "entities": {
+        "items": [
+          { "type": "person", "name": "朋友", "confidence": 0.9, "evidence": "朋友" },
+          { "type": "book", "name": "小王子", "confidence": 0.9, "evidence": "《小王子》" }
+        ]
+      },
+      "goals": { "items": [{ "title": "去机场接朋友", "confidence": 0.85, "evidence": "去机场接朋友" }] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "empty-arrays-12",
+    "currentText": "今天天气不错，适合出门走走。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "other", "confidence": 0.9, "evidence": "今天天气不错" },
+      "summary": { "text": "今天天气不错，适合出门走走。", "confidence": 0.9, "evidence": ["今天天气不错"] },
+      "entities": { "items": [] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "sadness-neutral-13",
+    "currentText": "最近总觉得很累，晚上也睡不好，去医院检查说可能是轻度焦虑。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "diary", "confidence": 0.85, "evidence": "晚上也睡不好" },
+      "summary": { "text": "最近很累，睡眠不好，检查提示可能轻度焦虑。", "confidence": 0.85, "evidence": ["晚上也睡不好"] },
+      "entities": { "items": [] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": true
+    }
+  },
+  {
+    "id": "illness-risk-14",
+    "currentText": "妈妈确诊高血压，医生说要长期吃药，我很担心。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "person", "confidence": 0.85, "evidence": "确诊高血压" },
+      "summary": { "text": "妈妈确诊高血压，需要长期吃药。", "confidence": 0.85, "evidence": ["确诊高血压"] },
+      "entities": {
+        "items": [
+          { "type": "person", "name": "妈妈", "confidence": 0.95, "evidence": "妈妈" },
+          { "type": "organization", "name": "医生", "confidence": 0.7, "evidence": "医生" }
+        ]
+      },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": true
+    }
+  },
+  {
+    "id": "travel-other-15",
+    "currentText": "五一带孩子去青岛玩三天，打算住海边。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "other", "confidence": 0.9, "evidence": "去青岛玩三天" },
+      "summary": { "text": "五一去青岛玩三天。", "confidence": 0.9, "evidence": ["去青岛玩三天"] },
+      "entities": { "items": [{ "type": "place", "name": "青岛", "confidence": 0.95, "evidence": "青岛" }] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    }
+  }
+]

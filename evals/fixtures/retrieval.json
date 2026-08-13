@@ -1,0 +1,532 @@
+[
+  {
+    "id": "retrieval-dune-27",
+    "currentText": "Alice plans to read Dune tomorrow",
+    "retrieval": {
+      "query": "Dune"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "plans to read Dune"
+      },
+      "summary": {
+        "text": "Alice plans to read Dune tomorrow.",
+        "confidence": 0.9,
+        "evidence": [
+          "plans to read Dune"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "person",
+            "name": "Alice",
+            "confidence": 0.9,
+            "evidence": "Alice"
+          },
+          {
+            "type": "book",
+            "name": "Dune",
+            "confidence": 0.9,
+            "evidence": "Dune"
+          }
+        ]
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "Read Dune",
+            "confidence": 0.85,
+            "evidence": "read Dune"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "Start tomorrow",
+            "dueHint": "tomorrow",
+            "confidence": 0.7,
+            "evidence": "tomorrow"
+          }
+        ]
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-disney-28",
+    "currentText": "上周末去了上海迪士尼，排队两小时玩了创极速光轮。",
+    "retrieval": {
+      "query": "上海迪士尼"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "other",
+        "confidence": 0.9,
+        "evidence": "去了上海迪士尼"
+      },
+      "summary": {
+        "text": "上周末去上海迪士尼，玩了创极速光轮。",
+        "confidence": 0.9,
+        "evidence": [
+          "去了上海迪士尼"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "place",
+            "name": "上海迪士尼",
+            "confidence": 0.95,
+            "evidence": "上海迪士尼"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-jogging-29",
+    "currentText": "坚持晨跑三周后，配速从七分提升到六分半。",
+    "retrieval": {
+      "query": "坚持晨跑"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "diary",
+        "confidence": 0.85,
+        "evidence": "坚持晨跑三周"
+      },
+      "summary": {
+        "text": "坚持晨跑三周，配速提升。",
+        "confidence": 0.85,
+        "evidence": [
+          "坚持晨跑三周"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-sapiens-30",
+    "currentText": "读完了《人类简史》，对农业革命部分印象最深。",
+    "retrieval": {
+      "query": "人类简史"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "reading",
+        "confidence": 0.9,
+        "evidence": "读完了《人类简史》"
+      },
+      "summary": {
+        "text": "读完《人类简史》，对农业革命印象最深。",
+        "confidence": 0.9,
+        "evidence": [
+          "读完了《人类简史》"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "book",
+            "name": "人类简史",
+            "confidence": 0.95,
+            "evidence": "《人类简史》"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-birthday-31",
+    "currentText": "妈妈生日是下周三，我准备订一束花送给她。",
+    "retrieval": {
+      "query": "妈妈生日"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "person",
+        "confidence": 0.9,
+        "evidence": "妈妈生日是下周三"
+      },
+      "summary": {
+        "text": "妈妈生日是下周三，准备订花。",
+        "confidence": 0.9,
+        "evidence": [
+          "妈妈生日是下周三"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "person",
+            "name": "妈妈",
+            "confidence": 0.95,
+            "evidence": "妈妈"
+          }
+        ]
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "给妈妈订一束花",
+            "confidence": 0.85,
+            "evidence": "订一束花"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "订一束花",
+            "dueHint": "下周三",
+            "confidence": 0.8,
+            "evidence": "订一束花"
+          }
+        ]
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-testcases-32",
+    "currentText": "项目上线前需要补三个接口的测试用例，周五前完成。",
+    "retrieval": {
+      "query": "测试用例"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "补三个接口的测试用例"
+      },
+      "summary": {
+        "text": "上线前需要补三个接口的测试用例。",
+        "confidence": 0.9,
+        "evidence": [
+          "补三个接口的测试用例"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "organization",
+            "name": "项目",
+            "confidence": 0.8,
+            "evidence": "项目"
+          }
+        ]
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "补三个接口的测试用例",
+            "confidence": 0.9,
+            "evidence": "补三个接口的测试用例"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "补测试用例",
+            "dueHint": "周五前",
+            "confidence": 0.85,
+            "evidence": "补三个接口的测试用例"
+          }
+        ]
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-chengdu-33",
+    "currentText": "国庆去成都吃火锅，顺便看大熊猫基地。",
+    "retrieval": {
+      "query": "大熊猫基地"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "other",
+        "confidence": 0.9,
+        "evidence": "去成都吃火锅"
+      },
+      "summary": {
+        "text": "国庆去成都吃火锅，看大熊猫基地。",
+        "confidence": 0.9,
+        "evidence": [
+          "去成都吃火锅"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "place",
+            "name": "成都",
+            "confidence": 0.95,
+            "evidence": "成都"
+          },
+          {
+            "type": "place",
+            "name": "大熊猫基地",
+            "confidence": 0.85,
+            "evidence": "大熊猫基地"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-marathon-34",
+    "currentText": "报名了九月的半程马拉松，开始每周四次训练。",
+    "retrieval": {
+      "query": "半程马拉松"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "报名了九月的半程马拉松"
+      },
+      "summary": {
+        "text": "报名九月半程马拉松，每周四次训练。",
+        "confidence": 0.9,
+        "evidence": [
+          "报名了九月的半程马拉松"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "完成半程马拉松",
+            "confidence": 0.85,
+            "evidence": "报名了九月的半程马拉松"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "每周四次训练",
+            "confidence": 0.8,
+            "evidence": "每周四次训练",
+            "dueHint": null
+          }
+        ]
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-baby-fever-35",
+    "currentText": "宝宝昨晚发烧到三十八度五，早上退了，还是有点担心。",
+    "retrieval": {
+      "query": "宝宝昨晚发烧"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "person",
+        "confidence": 0.85,
+        "evidence": "宝宝昨晚发烧"
+      },
+      "summary": {
+        "text": "宝宝昨晚发烧，早上退了，还是有点担心。",
+        "confidence": 0.85,
+        "evidence": [
+          "宝宝昨晚发烧"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "person",
+            "name": "宝宝",
+            "confidence": 0.95,
+            "evidence": "宝宝"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": true
+    }
+  },
+  {
+    "id": "retrieval-omurice-36",
+    "currentText": "打算学做日式蛋包饭，周末先试一次。",
+    "retrieval": {
+      "query": "日式蛋包饭"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "打算学做日式蛋包饭"
+      },
+      "summary": {
+        "text": "打算学做日式蛋包饭。",
+        "confidence": 0.9,
+        "evidence": [
+          "打算学做日式蛋包饭"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "学做日式蛋包饭",
+            "confidence": 0.9,
+            "evidence": "打算学做日式蛋包饭"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "周末试做一次",
+            "dueHint": "周末",
+            "confidence": 0.8,
+            "evidence": "周末先试一次"
+          }
+        ]
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-guilin-37",
+    "currentText": "公司下季度组织去桂林团建，报名截止是月底。",
+    "retrieval": {
+      "query": "桂林团建"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "other",
+        "confidence": 0.9,
+        "evidence": "去桂林团建"
+      },
+      "summary": {
+        "text": "公司下季度组织去桂林团建。",
+        "confidence": 0.9,
+        "evidence": [
+          "去桂林团建"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "organization",
+            "name": "公司",
+            "confidence": 0.9,
+            "evidence": "公司"
+          },
+          {
+            "type": "place",
+            "name": "桂林",
+            "confidence": 0.95,
+            "evidence": "桂林"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "retrieval-oppenheimer-38",
+    "currentText": "昨天看了《奥本海默》，原子弹那段特别震撼。",
+    "retrieval": {
+      "query": "奥本海默"
+    },
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "reading",
+        "confidence": 0.9,
+        "evidence": "看了《奥本海默》"
+      },
+      "summary": {
+        "text": "昨天看了《奥本海默》，原子弹那段很震撼。",
+        "confidence": 0.9,
+        "evidence": [
+          "看了《奥本海默》"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "book",
+            "name": "奥本海默",
+            "confidence": 0.95,
+            "evidence": "《奥本海默》"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  }
+]

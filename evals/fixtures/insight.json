@@ -1,0 +1,136 @@
+[
+  {
+    "id": "insight-grounded-39",
+    "currentText": "下周想学游泳。",
+    "analysis": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.9, "evidence": "下周想学游泳" },
+      "summary": { "text": "下周想学游泳。", "confidence": 0.9, "evidence": ["下周想学游泳"] },
+      "entities": { "items": [] },
+      "goals": { "items": [{ "title": "学游泳", "confidence": 0.85, "evidence": "下周想学游泳" }] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    },
+    "memories": [
+      {
+        "memoryId": "00000000-0000-4000-8000-000000000001",
+        "entryId": "10000000-0000-4000-8000-000000000001",
+        "summary": "用户计划下周开始学游泳。",
+        "evidenceQuote": "下周想学游泳",
+        "createdAt": "2026-08-06T00:00:00.000Z",
+        "score": 1
+      }
+    ],
+    "goldReply": {
+      "schemaVersion": "insight-reply.v1",
+      "text": "你提到下周想学游泳，可以先从基础呼吸开始练习。",
+      "grounding": "grounded",
+      "citations": [
+        { "memoryId": "00000000-0000-4000-8000-000000000001", "entryId": "10000000-0000-4000-8000-000000000001", "evidenceQuote": "下周想学游泳" }
+      ]
+    },
+    "simulate": "valid"
+  },
+  {
+    "id": "insight-repair-40",
+    "currentText": "妈妈生日是下周三。",
+    "analysis": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "person", "confidence": 0.9, "evidence": "妈妈生日是下周三" },
+      "summary": { "text": "妈妈生日是下周三。", "confidence": 0.9, "evidence": ["妈妈生日是下周三"] },
+      "entities": { "items": [{ "type": "person", "name": "妈妈", "confidence": 0.95, "evidence": "妈妈" }] },
+      "goals": { "items": [{ "title": "给妈妈过生日", "confidence": 0.85, "evidence": "妈妈生日是下周三" }] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    },
+    "memories": [
+      {
+        "memoryId": "00000000-0000-4000-8000-000000000002",
+        "entryId": "10000000-0000-4000-8000-000000000002",
+        "summary": "妈妈生日在下周三。",
+        "evidenceQuote": "妈妈生日是下周三",
+        "createdAt": "2026-08-06T00:00:00.000Z",
+        "score": 1
+      }
+    ],
+    "goldReply": {
+      "schemaVersion": "insight-reply.v1",
+      "text": "下周三是妈妈生日，可以提前准备一份小礼物。",
+      "grounding": "grounded",
+      "citations": [
+        { "memoryId": "00000000-0000-4000-8000-000000000002", "entryId": "10000000-0000-4000-8000-000000000002", "evidenceQuote": "妈妈生日是下周三" }
+      ]
+    },
+    "invalidFirstReply": {
+      "schemaVersion": "insight-reply.v1",
+      "text": "下周三是妈妈生日。",
+      "grounding": "grounded",
+      "citations": [
+        { "memoryId": "ffffffff-0000-4000-8000-000000000000", "entryId": "ffffffff-0000-4000-8000-000000000000", "evidenceQuote": "不存在的引用" }
+      ]
+    },
+    "simulate": "repair"
+  },
+  {
+    "id": "insight-no-relevant-41",
+    "currentText": "今天天气不错。",
+    "analysis": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "other", "confidence": 0.9, "evidence": "今天天气不错" },
+      "summary": { "text": "今天天气不错。", "confidence": 0.9, "evidence": ["今天天气不错"] },
+      "entities": { "items": [] },
+      "goals": { "items": [] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    },
+    "memories": [],
+    "goldReply": {
+      "schemaVersion": "insight-reply.v1",
+      "text": "目前没有找到相关的记忆。",
+      "grounding": "no_relevant_memory",
+      "citations": []
+    },
+    "simulate": "valid"
+  },
+  {
+    "id": "insight-multiple-memories-42",
+    "currentText": "周末想去看电影《沙丘》。",
+    "analysis": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": { "inputType": "goal", "confidence": 0.9, "evidence": "周末想去看电影" },
+      "summary": { "text": "周末想去看电影《沙丘》。", "confidence": 0.9, "evidence": ["周末想去看电影"] },
+      "entities": { "items": [{ "type": "book", "name": "沙丘", "confidence": 0.9, "evidence": "《沙丘》" }] },
+      "goals": { "items": [{ "title": "看《沙丘》", "confidence": 0.85, "evidence": "想去看电影" }] },
+      "nextActions": { "items": [] },
+      "needsUserReview": false
+    },
+    "memories": [
+      {
+        "memoryId": "00000000-0000-4000-8000-000000000003",
+        "entryId": "10000000-0000-4000-8000-000000000003",
+        "summary": "用户喜欢科幻电影。",
+        "evidenceQuote": "科幻电影",
+        "createdAt": "2026-08-06T00:00:00.000Z",
+        "score": 0.9
+      },
+      {
+        "memoryId": "00000000-0000-4000-8000-000000000004",
+        "entryId": "10000000-0000-4000-8000-000000000004",
+        "summary": "用户读过《沙丘》原著。",
+        "evidenceQuote": "读过《沙丘》",
+        "createdAt": "2026-08-06T00:00:00.000Z",
+        "score": 0.8
+      }
+    ],
+    "goldReply": {
+      "schemaVersion": "insight-reply.v1",
+      "text": "你周末想看《沙丘》，结合你读过原著和喜欢科幻片的记录，值得去影院看。",
+      "grounding": "grounded",
+      "citations": [
+        { "memoryId": "00000000-0000-4000-8000-000000000003", "entryId": "10000000-0000-4000-8000-000000000003", "evidenceQuote": "科幻电影" },
+        { "memoryId": "00000000-0000-4000-8000-000000000004", "entryId": "10000000-0000-4000-8000-000000000004", "evidenceQuote": "读过《沙丘》" }
+      ]
+    },
+    "simulate": "valid"
+  }
+]

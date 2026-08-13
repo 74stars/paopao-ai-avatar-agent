@@ -1,0 +1,392 @@
+[
+  {
+    "id": "invented-evidence-repair-16",
+    "currentText": "项目延期了，因为供应商没有按时交货。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "other",
+        "confidence": 0.85,
+        "evidence": "供应商没有按时交货"
+      },
+      "summary": {
+        "text": "项目延期，供应商未按时交货。",
+        "confidence": 0.85,
+        "evidence": [
+          "供应商没有按时交货"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "organization",
+            "name": "供应商",
+            "confidence": 0.9,
+            "evidence": "供应商"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    },
+    "invalidFirst": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "other",
+        "confidence": 0.85,
+        "evidence": "供应商没有按时交货"
+      },
+      "summary": {
+        "text": "项目延期，供应商在月球上交货。",
+        "confidence": 0.85,
+        "evidence": [
+          "供应商在月球上"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "organization",
+            "name": "供应商",
+            "confidence": 0.9,
+            "evidence": "供应商"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "empty-summary-evidence-schema-17",
+    "currentText": "今天跑了五公里，感觉不错。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "diary",
+        "confidence": 0.9,
+        "evidence": "跑了五公里"
+      },
+      "summary": {
+        "text": "今天跑了五公里，感觉不错。",
+        "confidence": 0.9,
+        "evidence": [
+          "跑了五公里"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    },
+    "invalidFirst": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "diary",
+        "confidence": 0.9,
+        "evidence": "跑了五公里"
+      },
+      "summary": {
+        "text": "今天跑了五公里。",
+        "confidence": 0.9,
+        "evidence": []
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "entity-evidence-missing-18",
+    "currentText": "公司年会定在下月十五号，需要提前准备节目。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "需要提前准备节目"
+      },
+      "summary": {
+        "text": "公司年会定在下月十五号，需要提前准备节目。",
+        "confidence": 0.9,
+        "evidence": [
+          "需要提前准备节目"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "organization",
+            "name": "公司",
+            "confidence": 0.9,
+            "evidence": "公司"
+          }
+        ]
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "准备年会节目",
+            "confidence": 0.85,
+            "evidence": "准备节目"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "提前准备节目",
+            "dueHint": "下月十五号",
+            "confidence": 0.8,
+            "evidence": "提前准备节目"
+          }
+        ]
+      },
+      "needsUserReview": false
+    },
+    "invalidFirst": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "需要提前准备节目"
+      },
+      "summary": {
+        "text": "公司年会定在下月十五号。",
+        "confidence": 0.9,
+        "evidence": [
+          "需要提前准备节目"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "organization",
+            "name": "公司",
+            "confidence": 0.9,
+            "evidence": "十五号晚上"
+          }
+        ]
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "准备年会节目",
+            "confidence": 0.85,
+            "evidence": "准备节目"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "goal-evidence-missing-19",
+    "currentText": "想换一份工作，最近在修改简历。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "想换一份工作"
+      },
+      "summary": {
+        "text": "想换工作，最近在修改简历。",
+        "confidence": 0.9,
+        "evidence": [
+          "想换一份工作"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "换一份工作",
+            "confidence": 0.85,
+            "evidence": "想换一份工作"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "修改简历",
+            "confidence": 0.8,
+            "evidence": "修改简历",
+            "dueHint": null
+          }
+        ]
+      },
+      "needsUserReview": false
+    },
+    "invalidFirst": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "想换一份工作"
+      },
+      "summary": {
+        "text": "想换工作，最近在修改简历。",
+        "confidence": 0.9,
+        "evidence": [
+          "想换一份工作"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "换一份工作",
+            "confidence": 0.85,
+            "evidence": "投了十家公司"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "action-evidence-missing-20",
+    "currentText": "下个月要搬家，需要提前联系搬家公司。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "提前联系搬家公司"
+      },
+      "summary": {
+        "text": "下个月搬家，需要提前联系搬家公司。",
+        "confidence": 0.9,
+        "evidence": [
+          "提前联系搬家公司"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": [
+          {
+            "title": "搬家",
+            "confidence": 0.9,
+            "evidence": "下个月要搬家"
+          }
+        ]
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "联系搬家公司",
+            "dueHint": "下个月",
+            "confidence": 0.8,
+            "evidence": "提前联系搬家公司"
+          }
+        ]
+      },
+      "needsUserReview": false
+    },
+    "invalidFirst": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "goal",
+        "confidence": 0.9,
+        "evidence": "提前联系搬家公司"
+      },
+      "summary": {
+        "text": "下个月搬家。",
+        "confidence": 0.9,
+        "evidence": [
+          "提前联系搬家公司"
+        ]
+      },
+      "entities": {
+        "items": []
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": [
+          {
+            "title": "联系搬家公司",
+            "dueHint": "下个月",
+            "confidence": 0.8,
+            "evidence": "预约货车"
+          }
+        ]
+      },
+      "needsUserReview": false
+    }
+  },
+  {
+    "id": "summary-text-neutral-21",
+    "currentText": "男朋友和我吵架了，心里很难受。",
+    "gold": {
+      "schemaVersion": "memory-analysis.v1",
+      "classification": {
+        "inputType": "diary",
+        "confidence": 0.9,
+        "evidence": "心里很难受"
+      },
+      "summary": {
+        "text": "和男朋友吵架，心里很难受。",
+        "confidence": 0.9,
+        "evidence": [
+          "心里很难受"
+        ]
+      },
+      "entities": {
+        "items": [
+          {
+            "type": "person",
+            "name": "男朋友",
+            "confidence": 0.95,
+            "evidence": "男朋友"
+          }
+        ]
+      },
+      "goals": {
+        "items": []
+      },
+      "nextActions": {
+        "items": []
+      },
+      "needsUserReview": true
+    }
+  }
+]
