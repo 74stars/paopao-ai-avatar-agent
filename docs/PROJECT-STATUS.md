@@ -28,11 +28,11 @@ Paopao 泡泡是一个本地优先的 macOS/Windows 桌面记忆 Agent。MVP 链
 ## 2. Git 与工作树
 
 - 分支：`main`，上游：`https://github.com/74stars/paopao-ai-avatar-agent.git`。
-- `HEAD`：`c08fa15 docs: add Paopao V1 project specification`。
-- 关键状态：大量 MVP 源码、测试、CI 文件仍为未提交或未跟踪状态，`origin/main` 当前无法重建本地已验证候选。
-- 主要未跟踪目录：`packages/`、`adapters/`、`desktop-app/electron/`、`desktop-app/src/`、`desktop-app/test/`、`tests/`、`evals/`、`docs/mvp/`、`docs/adr/`、`prompts/`、`scripts/`、`.github/`。
-- 已有大量 tracked 文件的本地修改，集中在 desktop Electron/React、README、预览资源与 V1 规格。
-- `.gitignore` 已忽略 `node_modules/`、构建产物、`desktop-app/release/`、`test-results/`、`*.log`、`.env` 等；`tmp/` 目前未被忽略且包含生图/参考临时文件，属于待清理项。
+- `HEAD`：`17e2ba4 docs: add MVP status ADRs and non-art runbooks`。
+- `origin/main`：仍为 `c08fa15`；本次本地整理尚未推送，远端还不能从源码重建当前候选。
+- 非美术源码、测试、CI 与文档已按主题分 7 个本地提交；仅美术资源仍为未提交/未跟踪状态。
+- 剩余未提交内容集中在：`desktop-app/design/`、`desktop-app/public/assets/`、`docs/design/`、`preview/assets/`。
+- `.gitignore` 已忽略 `node_modules/`、构建产物、`desktop-app/release/`、`test-results/`、`*.log`、`.env`、`tmp/` 与 packages/adapters 的 `dist/`。
 
 ## 3. 工程基线
 
@@ -151,7 +151,7 @@ Paopao 泡泡是一个本地优先的 macOS/Windows 桌面记忆 Agent。MVP 链
 - macOS arm64 干净机验证（当前只有本机运行，不等于干净机）。
 - 操作系统原生 app-region 指针拖动。
 - 公共代码签名与 macOS notarization。
-- 当前工作树的远端 CI 重跑（因为源码尚未全部进入 Git）。
+- 当前工作树的远端 CI 重跑（因为本地提交尚未推送到远端）。
 
 ## 8. 发布产物
 
@@ -168,15 +168,15 @@ Paopao 泡泡是一个本地优先的 macOS/Windows 桌面记忆 Agent。MVP 链
 
 ## 9. 当前阻塞项
 
-- 未建立可复现 Git 基线：`HEAD`/`origin/main` 停留在 `c08fa15`，大量非美术实现、测试和 CI 未提交。
+- 本地非美术 Git 基线已建立，但尚未推送：`origin/main` 仍停留在 `c08fa15`，远端不能重建当前候选。
 - 跨平台发布矩阵未完成。
 - 签名与 notarization 未完成。
-- `tmp/` 中存在临时生图/参考目录，尚未从工作树清理。
+- `tmp/` 已加入 `.gitignore`，但临时生图/参考目录仍保留在磁盘上，尚未物理清理。
 - 飞书为 DEFERRED，非阻塞项；真实租户验收留待 post-MVP。
 
 ## 10. 下一步建议
 
-1. 先建立 Git 基线：确认 `tmp/`、`desktop-app/release/`、`test-results/` 与美术临时产物的清理/忽略策略，再按功能分提交。
+1. 确认本地 7 个非美术提交无误后，再决定是否推送；推送前继续核对 `tmp/`、`desktop-app/release/`、`test-results/` 与美术临时产物的物理清理策略。
 2. 在干净环境中执行 `npm ci`、`npm run typecheck`、`npm test`、`npm run build`、`npm run smoke:preload:runtime`，把现有本机报告升级为可复现远端证据。
 3. 补 Windows x64 与 macOS x64/arm64 的安装包、SHA-256 与干净机 smoke。
 4. 产品签收前完成 README 能力对账、签名/notarization 决策和已知限制记录。
