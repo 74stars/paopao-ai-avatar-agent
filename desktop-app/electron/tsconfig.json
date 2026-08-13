@@ -1,1 +1,11 @@
-{"extends":"../tsconfig.json","compilerOptions":{"outDir":"../dist-electron","module":"NodeNext","moduleResolution":"NodeNext","types":["node","electron"]},"include":["./**/*.ts"]}
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist-electron",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": false,
+    "types": ["node", "electron"]
+  },
+  "include": ["./**/*.ts"]
+}
