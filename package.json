@@ -1,0 +1,45 @@
+{
+  "name": "paopao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Paopao local-first desktop MVP",
+  "workspaces": [
+    "desktop-app",
+    "packages/*",
+    "adapters/*"
+  ],
+  "engines": {
+    "node": ">=22.14.0 <25",
+    "npm": ">=10.9.0 <12"
+  },
+  "packageManager": "npm@11.6.0",
+  "scripts": {
+    "format:check": "git diff --check",
+    "lint": "npm run typecheck",
+    "typecheck": "npm run check --workspace=paopao-desktop && npm run typecheck --workspaces --if-present",
+    "test": "npm run test:contracts && npm run test:unit && npm run test:integration && npm run test:evals",
+    "test:contracts": "npm run test --workspace=@paopao/contracts --if-present",
+    "test:unit": "npm run test --workspace=@paopao/domain && npm run test --workspace=paopao-desktop --if-present",
+    "test:integration": "npm run rebuild:native:node && npm run test --workspace=@paopao/infrastructure && npm run test:integration --workspaces --if-present && npm run test:g3",
+    "test:g3": "tsx --test tests/integration/*.test.mts tests/security/*.test.mts",
+    "test:evals": "node --test --import tsx evals/runners/offline.test.mts",
+    "test:e2e": "node tests/e2e/electron-wave4.e2e.cjs",
+    "test:e2e:provider": "node tests/e2e/electron-ai-provider.e2e.cjs",
+    "build": "npm run build --workspace=@paopao/domain && npm run build --workspace=@paopao/contracts && npm run build --workspace=@paopao/core && npm run build --workspace=@paopao/infrastructure && npm run build --workspace=@paopao/feishu-adapter && npm run build --workspace=paopao-desktop",
+    "build:renderer": "npm run build:renderer --workspace=paopao-desktop",
+    "build:electron": "npm run build:electron --workspace=paopao-desktop",
+    "dist:win": "npm run dist --workspace=paopao-desktop",
+    "dist:mac": "npm run dist:mac --workspace=paopao-desktop",
+    "rebuild:native:node": "npm rebuild better-sqlite3 --workspace=@paopao/infrastructure",
+    "rebuild:native": "npm run rebuild:native --workspace=paopao-desktop",
+    "smoke:native": "electron scripts/smoke-native.cjs",
+    "smoke:composition": "npm run build:electron --workspace=paopao-desktop && electron scripts/smoke-composition.cjs",
+    "smoke:preload": "npm run build:electron --workspace=paopao-desktop && npm run smoke:preload:runtime",
+    "smoke:preload:runtime": "electron scripts/smoke-preload.cjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.62.1",
+    "pngjs": "7.0.0",
+    "tsx": "4.19.2"
+  }
+}

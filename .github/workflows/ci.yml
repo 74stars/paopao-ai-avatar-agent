@@ -1,0 +1,98 @@
+name: Paopao MVP CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:contracts
+      - run: npm run test:unit
+      - run: npm run test:integration
+      - run: npm run test:evals
+      - run: npm run build
+      - run: xvfb-run -a npm run smoke:preload:runtime
+
+  windows-native-smoke:
+    runs-on: windows-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e
+      - run: npm run dist:win
+      - run: npm run smoke:preload:runtime
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paopao-wave4-e2e-windows-x64
+          path: test-results/e2e-wave4/
+          if-no-files-found: error
+      - name: Generate Windows checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem desktop-app/release/Paopao-Setup-*.exe |
+            Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $([System.IO.Path]::GetFileName($_.Path))" } |
+            Set-Content desktop-app/release/SHA256SUMS-win.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paopao-windows-x64
+          path: |
+            desktop-app/release/Paopao-Setup-*.exe
+            desktop-app/release/*.blockmap
+            desktop-app/release/SHA256SUMS-win.txt
+          if-no-files-found: error
+
+  macos-package-smoke:
+    runs-on: macos-latest
+    needs: checks
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e
+      - run: npm run dist:mac
+      - run: npm run smoke:preload:runtime
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paopao-wave4-e2e-macos
+          path: test-results/e2e-wave4/
+          if-no-files-found: error
+      - name: Generate macOS checksums
+        run: shasum -a 256 desktop-app/release/*.dmg desktop-app/release/*.zip > desktop-app/release/SHA256SUMS-mac.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paopao-macos-x64-arm64
+          path: |
+            desktop-app/release/*.dmg
+            desktop-app/release/*.zip
+            desktop-app/release/*.blockmap
+            desktop-app/release/SHA256SUMS-mac.txt
+          if-no-files-found: error

@@ -8,3 +8,11 @@ data/*.db
 feishu-bot/data/
 .DS_Store
 Thumbs.db
+desktop-app/dist/
+desktop-app/dist-electron/
+desktop-app/release/
+test-results/
+tests/artifacts/living-library-visual/
+tmp/
+packages/*/dist/
+adapters/*/dist/
