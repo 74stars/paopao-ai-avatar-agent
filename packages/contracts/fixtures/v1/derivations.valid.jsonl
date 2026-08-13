@@ -1,0 +1,1 @@
+{"id":"00000000-0000-4000-8000-000000000030","kind":"classification","value":{"inputType":"reading","confidence":0.9,"evidence":"reading note"},"textRevision":1,"artifactRevision":1,"supersedesId":null,"isCurrent":true,"createdBy":"ai","promptVersion":"memory-extraction/v1.0.0","schemaVersion":"memory-analysis.v1","createdAt":"2026-08-05T00:00:00Z"}

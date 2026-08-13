@@ -1,0 +1,1 @@
+{"id":"00000000-0000-4000-8000-000000000020","attempts":0,"maxAttempts":5,"leaseOwner":"worker-1","leaseExpiresAt":"2026-08-05T00:01:00Z","fencingToken":1,"type":"analyze_entry","entryId":"00000000-0000-4000-8000-000000000010","payload":{"schemaVersion":"analyze-entry-job.v1","entryId":"00000000-0000-4000-8000-000000000010","textRevision":1}}

@@ -1,0 +1,1 @@
+{"schemaVersion":"memory-analysis.v1","classification":{"inputType":"reading","confidence":0.95,"evidence":"reading note"},"summary":{"text":"A reading note.","confidence":0.9,"evidence":["reading note"]},"entities":{"items":[]},"goals":{"items":[]},"nextActions":{"items":[]},"needsUserReview":false}
