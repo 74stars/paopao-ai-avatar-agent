@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: Living Library day architecture plate
+Input image: Image 1 is the current edit target; all existing repaired architecture is authoritative.
+Primary request: Remove only the small lit oil lamp assembly on the left side of the desk, including its metal base, glass chimney, flame, direct contact shadow and the sharp lamp-shaped reflection. Reconstruct the walnut desktop hidden beneath it. Keep the separate clear glass vase and all plant stems immediately to its left unchanged.
+Style/medium: photorealistic interior photography matching the input image exactly.
+Composition/framing: keep the original framing, camera position, perspective, window geometry, crop, and scale unchanged.
+Lighting/mood: preserve the room's existing warm ambient illumination and cool window light; remove only the sharp local flame and lamp-shaped reflection while keeping a natural soft warm falloff from the surrounding room.
+Materials/textures: continuous polished walnut grain, subtle wear and realistic broad reflections without a seam.
+Constraints: change only the masked lamp region; preserve the adjacent clear vase, plant stems, window frame, city, wood post, repaired cubbies, all books, cloche, and every unmasked pixel; add no replacement object; no text; no watermark.
+Avoid: remaining lamp fragments, duplicated vase, missing stems, illustration, painting, collage, cut-paper edges, flat fills, blur, altered geometry, new props, glow outlines, UI elements.

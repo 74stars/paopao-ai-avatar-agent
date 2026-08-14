@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "canvas": {
+    "width": 1800,
+    "height": 1126
+  },
+  "regions": {
+    "central-cubby": {
+      "shape": "polygon",
+      "points": [
+        [584, 346],
+        [1294, 346],
+        [1294, 838],
+        [584, 838]
+      ],
+      "purpose": "Reconstruct the entire inner central cubby and its desk area so the empty architecture terminates at real wood-frame seams."
+    },
+    "typewriter": {
+      "shape": "polygon",
+      "points": [
+        [685, 420],
+        [1215, 420],
+        [1215, 820],
+        [685, 820]
+      ],
+      "purpose": "Remove the typewriter, its paper and its contact shadow while preserving the surrounding cubby and desk."
+    },
+    "correspondence-tray": {
+      "shape": "polygon",
+      "points": [
+        [1290, 470],
+        [1740, 470],
+        [1740, 790],
+        [1290, 790]
+      ],
+      "purpose": "Remove the correspondence tray and envelopes while preserving the right cubby and desk."
+    },
+    "lamp": {
+      "shape": "polygon",
+      "points": [
+        [285, 455],
+        [455, 455],
+        [455, 790],
+        [285, 790]
+      ],
+      "purpose": "Remove the oil lamp assembly and its contact shadow while preserving the adjacent glass vase and window framing."
+    },
+    "lamp-reflection": {
+      "shape": "polygon",
+      "points": [
+        [315, 725],
+        [430, 725],
+        [455, 885],
+        [285, 885]
+      ],
+      "purpose": "Remove the orphaned sharp lamp reflection from the polished desktop after the lamp body has been removed."
+    },
+    "category-books": {
+      "shape": "polygon",
+      "points": [
+        [584, 0],
+        [1294, 0],
+        [1294, 346],
+        [584, 346]
+      ],
+      "purpose": "Remove the central upper-shelf category books and reconstruct the empty back panel up to the real shelf-frame seams."
+    },
+    "category-books-junction-v2": {
+      "shape": "polygon",
+      "points": [
+        [670, 282],
+        [1268, 282],
+        [1268, 382],
+        [670, 382]
+      ],
+      "purpose": "Remove the remaining category-book spine bases and repair only the junction between the empty upper-bay back panel and its existing horizontal shelf beam."
+    },
+    "correspondence-letter-lift-state": {
+      "shape": "polygon",
+      "points": [
+        [1305, 470],
+        [1690, 470],
+        [1715, 715],
+        [1295, 715]
+      ],
+      "purpose": "P3 interaction state: lift the top envelope from the approved correspondence tray for browsing while preserving the tray body, wax seal, shelf, right books, and all surrounding architecture."
+    },
+    "category-books-diary-pull-state": {
+      "shape": "polygon",
+      "points": [
+        [620, 25],
+        [790, 25],
+        [790, 370],
+        [620, 370]
+      ],
+      "purpose": "P3 interaction state: pull one natural left-side group of adjacent upper-shelf books forward from the continuous book wall while preserving the shelf, neighboring books, beam, cubby, and all surrounding architecture."
+    },
+    "category-books-memory-pull-state-v2": {
+      "shape": "polygon",
+      "points": [
+        [755, 10],
+        [1020, 10],
+        [1020, 390],
+        [755, 390]
+      ],
+      "purpose": "P3 interaction state repair: move one middle-left group of three adjacent upper-shelf books unmistakably to the shelf front edge, including the minimum neighboring overlap and rear-slot shadow needed to show real depth; preserve the shelf beam and all surrounding architecture."
+    },
+    "category-books-third-group-pull-state": {
+      "shape": "polygon",
+      "points": [
+        [960, 10],
+        [1235, 10],
+        [1235, 390],
+        [960, 390]
+      ],
+      "purpose": "P3 group-level interaction state: move one central-right group of three adjacent upper-shelf books clearly to the shelf front edge, including only immediate overlap and rear-slot shadow; preserve the beam, neighboring row, glass cloche, and all surrounding architecture."
+    },
+    "category-books-fourth-group-pull-state": {
+      "shape": "polygon",
+      "points": [
+        [1135, 10],
+        [1375, 10],
+        [1375, 390],
+        [1135, 390]
+      ],
+      "purpose": "P3 group-level interaction state: move one upper-shelf right-end group of three adjacent books clearly to the shelf front edge while preserving the glass cloche, horizontal beam, neighboring row, and all surrounding architecture."
+    }
+  }
+}

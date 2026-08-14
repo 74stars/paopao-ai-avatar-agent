@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: Living Library day architecture plate
+Input image: Image 1 is the edit target and authoritative composition master.
+Primary request: Remove only the black vintage typewriter in the center, including its carriage, blank paper, keys, body, feet, contact shadow, and reflected silhouette on the desk. Reconstruct the exact dark wooden rear panel and polished walnut desktop that would naturally exist behind and beneath it.
+Style/medium: photorealistic interior photography matching the input image exactly.
+Composition/framing: keep the original 1800 x 1126 framing, camera position, perspective, shelf geometry, crop, and object scale unchanged.
+Lighting/mood: preserve the existing warm lamp illumination, cool window light, ambient falloff, wood reflections, and shadow direction.
+Materials/textures: continue the existing dark wood grain, cubby joinery, polished desktop grain, subtle dust, wear, reflections, and realistic contact shading without seams.
+Constraints: change only the masked typewriter region; preserve the window, city, plants, glass vessels, oil lamp, books, shelving, glass cloche, correspondence tray, envelopes, all surrounding woodwork, and every unmasked object; add no replacement object; no text; no watermark.
+Avoid: illustration, painting, collage, cut-paper edges, flat fills, plastic-looking wood, repeated grain, blur, altered geometry, shifted shelves, changed crop, new props, glow outlines, UI elements.

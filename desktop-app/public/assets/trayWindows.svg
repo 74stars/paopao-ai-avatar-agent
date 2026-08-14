@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="bubble" cx="0" cy="0" r="1" gradientTransform="translate(24 20) rotate(48) scale(43)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF7FF" />
+      <stop offset="0.45" stop-color="#23A8F2" />
+      <stop offset="1" stop-color="#007ACC" />
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="25" fill="url(#bubble)" stroke="#005A9E" stroke-width="3" />
+  <path d="M18 28c2-6 6-10 12-12" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-opacity="0.78" stroke-width="4" />
+  <circle cx="32" cy="40" r="6" fill="#9CDCFE" />
+  <circle cx="32" cy="40" r="3" fill="#F4FBFF" />
+</svg>

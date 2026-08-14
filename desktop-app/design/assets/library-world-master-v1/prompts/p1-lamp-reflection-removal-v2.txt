@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: Living Library day architecture plate
+Input image: Image 1 is the current edit target; the oil lamp has already been removed and all existing architecture is authoritative.
+Primary request: Remove only the compact bright vertical lamp reflection and hot spot remaining on the left side of the polished walnut desktop. Reconstruct continuous walnut grain and the broad, low-contrast room reflection that would naturally remain without a lamp at that location.
+Style/medium: photorealistic interior photography matching the input image exactly.
+Composition/framing: keep framing, perspective, wood geometry, crop and scale unchanged.
+Lighting/mood: retain the soft warm ambient falloff of the room and cool window light, but remove the sharp source-shaped golden streak and concentrated hot spot because no lamp remains there.
+Materials/textures: continuous polished walnut grain, subtle wear and broad physically plausible reflection without a seam.
+Constraints: change only the masked desktop reflection region; preserve the glass vase, plant stems, window, wood post, all repaired cubbies, books, cloche and every unmasked pixel; add no object; no text; no watermark.
+Avoid: bright vertical light streak, circular hot spot, repeated wood grain, blur, patch boundary, illustration, painting, collage, changed geometry, new props, UI elements.

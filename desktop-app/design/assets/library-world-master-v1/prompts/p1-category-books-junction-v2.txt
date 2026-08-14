@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: Living Library day architecture plate
+Input image: Image 1 is the current architecture-plate edit target; its framing, empty upper bay, repaired lower cubbies, retained objects and lighting are authoritative.
+Primary request: Remove only the short repeated row of remaining book-spine bases along the bottom of the empty central upper shelf. Repair the local junction so the dark vertical-grain wooden back panel meets the existing horizontal walnut shelf beam naturally, with a narrow soft contact shadow and continuous aged joinery.
+Style/medium: photorealistic interior photography matching the input image exactly.
+Composition/framing: keep the original framing, camera position, perspective, shelf geometry, crop and scale unchanged.
+Lighting/mood: preserve the warm light from the left, cool window light, ambient falloff, glass-cloche glow and existing shadow direction.
+Materials/textures: continue the existing dark vertical-grain back panel and solid walnut shelf beam; preserve realistic grain scale, slight wear and soft occlusion without a rectangular patch boundary.
+Constraints: change only the masked narrow lower portion of the central upper-shelf bay; preserve both vertical frame posts, the right-side standing books, glass cloche, upper-right book stack, left bay, window, all lower cubbies, desk and every unmasked pixel; add no object; no text; no watermark.
+Avoid: any remaining book-spine roots, repeated teeth or vertical blocks at the shelf base, a floating shelf, doubled beam edge, warped joinery, repeated grain, blur, flat fill, illustration, painting, collage, cut-paper edges, changed geometry, new props or UI elements.

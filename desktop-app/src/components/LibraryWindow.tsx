@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { DomainEventV1, EntryDetailV1, EntryListResponseV1, MemoryType } from "@paopao/contracts";
 import { LibraryReaderSheet } from "./LibraryReaderSheet";
-import { LibraryScene } from "./LibraryScene";
+import { LibraryScene, normalizedLibrarySearchQuery } from "./LibraryScene";
 import { shelfMeta } from "./LibraryShelf";
 import type { LibraryLoadState } from "./LibraryState";
 import { SettingsPanel } from "./SettingsPanel";
@@ -18,6 +18,9 @@ export function LibraryWindow() {
   const [list, setList] = useState<EntryListResponseV1>({ items: [], nextCursor: null });
   const [recent, setRecent] = useState<EntryListResponseV1>({ items: [], nextCursor: null });
   const [detail, setDetail] = useState<EntryDetailV1 | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [failedDetailId, setFailedDetailId] = useState<string | null>(null);
   const [state, setState] = useState<LibraryLoadState>("loading");
   const [error, setError] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
@@ -25,54 +28,77 @@ export function LibraryWindow() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [latestFeishuStatus, setLatestFeishuStatus] = useState<Extract<DomainEventV1, { type: "feishu:status" }> | null>(null);
   const requestSequence = useRef(0);
+  const detailRequestSequence = useRef(0);
 
   const loadLibrary = useCallback(async () => {
     const sequence = ++requestSequence.current;
     if (!window.paopao) {
       setState("error");
-      setError("书房暂时无法打开。请重新启动泡泡后再试。");
+      setError("活书房暂时无法打开。请重新启动泡泡后再试。");
       return;
     }
 
     setState("loading");
+    setError("");
     const [summaryResult, listResult, recentResult] = await Promise.all([
       window.paopao.library.summary({ version: 1 }),
       window.paopao.entries.list({ version: 1, limit: 30, query: query || undefined, types: selectedType ? [selectedType] : undefined }),
       window.paopao.entries.list({ version: 1, limit: 5 })
     ]);
     if (sequence !== requestSequence.current) return;
-    if (!summaryResult.ok || !listResult.ok || !recentResult.ok) {
+    if (!listResult.ok) {
       setState("error");
-      setError(!summaryResult.ok ? userErrorMessage(summaryResult.error, "library") : !listResult.ok ? userErrorMessage(listResult.error, "library") : !recentResult.ok ? userErrorMessage(recentResult.error, "library") : "书房读取失败。");
+      setError(userErrorMessage(listResult.error, "library"));
       return;
     }
 
-    setSummary(summaryResult.data);
-    setList(listResult.data);
-    setRecent(recentResult.data);
-    setState("ready");
-    if (detail) {
-      const currentItem = [...listResult.data.items, ...recentResult.data.items].find((item) => item.id === detail.id);
-      if (!currentItem) setDetail(null);
+    const secondaryErrors: string[] = [];
+    if (summaryResult.ok) setSummary(summaryResult.data);
+    else {
+      setSummary(null);
+      secondaryErrors.push("分类数量暂时无法读取。");
     }
-  }, [detail, query, selectedType]);
+    if (recentResult.ok) setRecent(recentResult.data);
+    else {
+      setRecent({ items: [], nextCursor: null });
+      secondaryErrors.push("最近记录入口暂时不可用。");
+    }
+    setList(listResult.data);
+    setError(secondaryErrors.join(" "));
+    setState("ready");
+    const loadedItems = [...listResult.data.items, ...(recentResult.ok ? recentResult.data.items : [])];
+    setDetail((current) => current && !loadedItems.some((item) => item.id === current.id) ? null : current);
+  }, [query, selectedType]);
 
   useEffect(() => { void loadLibrary(); }, [loadLibrary]);
   useEffect(() => window.paopao?.onDomainEvent((event) => {
     if (event.type === "entry:stored" || event.type === "entry:updated") void loadLibrary();
+    if (event.type === "backup:restore-progress" && (event.status === "succeeded" || event.status === "failed_rolled_back")) {
+      setDetail(null);
+      setLoadingMore(false);
+      setMoreError("");
+      void loadLibrary();
+    }
     if (event.type === "feishu:status") setLatestFeishuStatus(event);
   }), [loadLibrary]);
 
   async function openEntry(entryId: string) {
     if (!window.paopao) return;
+    const sequence = ++detailRequestSequence.current;
+    setSheetOpen(true);
+    setDetail(null);
+    setDetailLoading(true);
+    setDetailError("");
+    setFailedDetailId(entryId);
     const result = await window.paopao.entries.get({ version: 1, entryId });
+    if (sequence !== detailRequestSequence.current) return;
+    setDetailLoading(false);
     if (result.ok) {
       setDetail(result.data);
-      setSheetOpen(true);
+      setFailedDetailId(null);
       return;
     }
-    setError(userErrorMessage(result.error, "library"));
-    setState("error");
+    setDetailError(userErrorMessage(result.error, "library"));
   }
 
   async function reloadDetail() {
@@ -82,19 +108,33 @@ export function LibraryWindow() {
 
   async function afterDelete() {
     setDetail(null);
+    setDetailError("");
+    setFailedDetailId(null);
     await loadLibrary();
   }
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
+    const nextQuery = normalizedLibrarySearchQuery(queryInput);
+    if (!nextQuery) return;
     setDetail(null);
-    setQuery(queryInput.trim());
+    setDetailError("");
+    setFailedDetailId(null);
+    setSelectedType(null);
+    setQuery(nextQuery);
     setSheetOpen(true);
   }
 
-  function selectType(type: MemoryType) {
+  function selectType(type: MemoryType | null) {
     setDetail(null);
-    setSelectedType((current) => current === type ? null : type);
+    setQuery("");
+    setSelectedType(type);
+  }
+
+  function openSelectedType(type: MemoryType) {
+    setDetail(null);
+    setQuery("");
+    setSelectedType(type);
     setSheetOpen(true);
   }
 
@@ -106,14 +146,21 @@ export function LibraryWindow() {
   }
 
   function closeSheet() {
+    detailRequestSequence.current += 1;
     setDetail(null);
+    setDetailLoading(false);
+    setDetailError("");
+    setFailedDetailId(null);
     setSelectedType(null);
     setQuery("");
+    setQueryInput("");
     setSheetOpen(false);
   }
 
   function openBrowse() {
     setDetail(null);
+    setSelectedType(null);
+    setQuery("");
     setSheetOpen(true);
   }
 
@@ -161,6 +208,7 @@ export function LibraryWindow() {
         onQueryInputChange={setQueryInput}
         onSearch={submitSearch}
         onSelectType={selectType}
+        onOpenSelectedType={openSelectedType}
         onCapture={capture}
         onBrowse={openBrowse}
         onOpenEntry={(entryId) => void openEntry(entryId)}
@@ -176,6 +224,8 @@ export function LibraryWindow() {
           error={error}
           list={list}
           detail={detail}
+          detailLoading={detailLoading}
+          detailError={detailError}
           loadingMore={loadingMore}
           moreError={moreError}
           onClose={closeSheet}
@@ -183,6 +233,7 @@ export function LibraryWindow() {
           onLoadMore={() => void loadMore()}
           onOpenEntry={(entryId) => void openEntry(entryId)}
           onRetry={() => void loadLibrary()}
+          onRetryDetail={() => { if (failedDetailId) void openEntry(failedDetailId); }}
           onUpdated={reloadDetail}
           onDeleted={afterDelete}
           onCapture={capture}

@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: Living Library day architecture plate
+Input image: Image 1 is the current edit target; its framing, repaired lower cubbies and lighting are authoritative.
+Primary request: Remove only the large row of upright books from the central upper shelf. Reconstruct the empty dark wooden back panel, the shelf surface behind the books, and the soft shelf shadow that would naturally remain. Terminate the repair at the existing real wooden frame seams.
+Style/medium: photorealistic interior photography matching the input image exactly.
+Composition/framing: keep the original framing, camera position, perspective, shelf geometry, crop, and scale unchanged.
+Lighting/mood: preserve the warm light from the left, cool window light, ambient falloff, glass-cloche glow and existing shadow direction.
+Materials/textures: continuous dark wood grain, aged shelf joinery, subtle dust, believable depth and soft occlusion beneath the upper shelf.
+Constraints: change only the masked central upper-shelf bay; preserve the narrow books in the left bay, glass cloche, right book stack, all wooden beams, window, repaired lower cubbies, desk and every unmasked pixel; add no replacement object; no text; no watermark.
+Avoid: remaining central books, malformed shelf edges, illustration, painting, collage, cut-paper edges, flat fills, plastic wood, repeated grain, blur, altered geometry, shifted framing, new props, UI elements.

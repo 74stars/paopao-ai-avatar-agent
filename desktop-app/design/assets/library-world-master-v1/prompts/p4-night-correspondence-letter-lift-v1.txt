@@ -1,0 +1,9 @@
+Use case: lighting-weather plus precise-object-edit
+Asset type: P4 night interaction state for lifting the top correspondence letter
+Input images: Image 1 is the generated P4 night idle candidate and edit target. Image 2 is the approved P3 day letter-lift state and physical-motion reference. Image 3 is the authoritative original night reference.
+Primary request: Preserve the P4 night idle scene exactly, while restoring only the already approved top-envelope lift from Image 2. Lift the single top envelope within the original brass tray so its lower edge remains naturally occluded and supported by the tray front wall. Preserve one wax seal, fold lines, paper thickness, contact shadow and the real tray relationship. Change only this letter state and minimum local shadow inside the supplied mask; all surrounding night illumination and all other objects remain from Image 1.
+Composition/framing: preserve exact 1800 x 1126 camera, crop, tray position, lower-right cubby, right books, typewriter, book wall, lamp, window, vase, desk and cloche.
+Lighting/mood: keep the P4 night lighting continuous; use subdued warm lamp response on the paper and low-contrast brass reflections, with no floating bright panel.
+Materials/textures: aged matte paper, dark red wax, low-saturation brass, natural occlusion and shelf contact.
+Constraints: use Image 2 only to recover the approved letter-lift geometry, not its day lighting or surrounding redraw. Edit only the supplied letter-state mask. Keep exactly one tray, one lifted top envelope and one wax seal. No text, email icon, card, border, glow, floating UI or unrelated change. The state must reverse to the P4 night idle frame by replacing the state image.
+Avoid: duplicate envelope, detached letter, changed tray body, altered books or architecture, changed lamp or window, dramatic brightness, UI card, CSS art, collage or 3D-toy appearance.

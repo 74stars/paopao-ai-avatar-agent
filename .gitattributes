@@ -4,3 +4,6 @@ index.html linguist-documentation
 *.md linguist-documentation
 *.webp linguist-vendored
 *.png linguist-vendored
+
+desktop-app/design/**/*.png filter=lfs diff=lfs merge=lfs -text
+desktop-app/design/**/*.webp filter=lfs diff=lfs merge=lfs -text

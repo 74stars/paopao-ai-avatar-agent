@@ -7,6 +7,8 @@ import { userErrorMessage } from "../error-messages";
 type ClassificationDerivation = Extract<EntryDetailV1["derivations"][number], { kind: "classification" }>;
 type SummaryDerivation = Extract<EntryDetailV1["derivations"][number], { kind: "summary" }>;
 
+export const DELETE_EXPORT_NOTICE = "记录会从当前数据、搜索、自动备份和后续导出中移除；已经复制到其他位置的旧导出不会被删除。";
+
 export function EntryGovernance({ detail, onUpdated, onDeleted }: { detail: EntryDetailV1; onUpdated(): Promise<void>; onDeleted(): Promise<void> }) {
   const classification = useMemo(() => detail.derivations.find((item): item is ClassificationDerivation => item.kind === "classification" && item.isCurrent), [detail.derivations]);
   const summary = useMemo(() => detail.derivations.find((item): item is SummaryDerivation => item.kind === "summary" && item.isCurrent), [detail.derivations]);
@@ -48,7 +50,7 @@ export function EntryGovernance({ detail, onUpdated, onDeleted }: { detail: Entr
       expectedDerivationId: summary.id,
       value: { ...summary.value, text: summaryText }
     };
-    await finish(await window.paopao.entries.correct(input), "AI 摘要已更新。");
+    await finish(await window.paopao.entries.correct(input), "整理摘要已更新。");
   }
 
   async function retry(jobId: string) {
@@ -62,7 +64,7 @@ export function EntryGovernance({ detail, onUpdated, onDeleted }: { detail: Entr
     if (!window.paopao || busy) return;
     if (!confirmingDelete) {
       setConfirmingDelete(true);
-      setMessage("再次点击确认删除。这条记录会先进入删除状态。");
+      setMessage(`再次点击确认删除。${DELETE_EXPORT_NOTICE}`);
       return;
     }
     setBusy("delete");
@@ -93,10 +95,10 @@ export function EntryGovernance({ detail, onUpdated, onDeleted }: { detail: Entr
     <section className="governance" data-testid="entry-governance">
       {(classification || summary) && (
         <details className="ai-adjustments">
-          <summary>调整 AI 整理</summary>
+          <summary>修改整理结果</summary>
           {classification && (
             <div className="adjustment-field">
-              <label htmlFor="entry-memory-type">分类</label>
+              <label htmlFor="entry-memory-type">记录分类</label>
               <div>
                 <select id="entry-memory-type" value={memoryType} disabled={Boolean(busy)} onChange={(event) => setMemoryType(event.target.value as MemoryType)}>
                   {shelfOrder.map((type) => <option key={type} value={type}>{shelfMeta[type].label}</option>)}
@@ -107,16 +109,16 @@ export function EntryGovernance({ detail, onUpdated, onDeleted }: { detail: Entr
           )}
           {summary && (
             <div className="adjustment-field">
-              <label htmlFor="entry-summary">AI 摘要</label>
+              <label htmlFor="entry-summary">整理摘要</label>
               <textarea id="entry-summary" value={summaryText} maxLength={500} disabled={Boolean(busy)} onChange={(event) => setSummaryText(event.target.value)} data-testid="summary-correction-input" />
-              <button type="button" disabled={Boolean(busy) || !summaryText.trim() || summaryText === summary.value.text} onClick={() => void saveSummary()}>保存摘要</button>
+              <button type="button" disabled={Boolean(busy) || !summaryText.trim() || summaryText === summary.value.text} onClick={() => void saveSummary()}>保存整理摘要</button>
             </div>
           )}
         </details>
       )}
       {jobsForRetry.length > 0 && (
         <div className="retry-actions">
-          {jobsForRetry.map((job) => <button className="retry-job" key={job.id} type="button" disabled={Boolean(busy)} onClick={() => void retry(job.id)}>{job.type === "generate_insight" ? "重新生成洞察" : "重新进行 AI 整理"}</button>)}
+          {jobsForRetry.map((job) => <button className="retry-job" key={job.id} type="button" disabled={Boolean(busy)} onClick={() => void retry(job.id)}>{job.type === "generate_insight" ? "重新生成洞察" : "重新整理"}</button>)}
         </div>
       )}
       <div className="governance-heading"><h2>记录管理</h2></div>

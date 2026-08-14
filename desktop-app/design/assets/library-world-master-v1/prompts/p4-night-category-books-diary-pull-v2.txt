@@ -1,0 +1,9 @@
+Use case: lighting-weather plus precise-object-edit
+Asset type: P4 night left-side upper-shelf book-group pull interaction state
+Input images: Image 1 is the approved P4 night idle candidate and the only edit target. Image 2 is the approved P3 day left-side group-pull state and physical-motion reference. Image 3 is the authoritative original night reference and lighting/material reference only.
+Primary request: Preserve Image 1 exactly and restore only the approved whole-group forward movement of the adjacent upper-shelf group around x=620..790 from Image 2. Move the selected books toward the viewer as one coherent upright group with a readable front plane, natural side occlusion, narrow rear recess, bottom contact at the shelf front edge and soft local cast shadow. Change only this group and the minimum overlap/rear/contact transition inside the supplied mask.
+Composition/framing: preserve exact 1800 x 1126 camera, crop, walnut shelf geometry, window, vase, oil lamp, typewriter, correspondence tray, desk and cloche. Image 1 controls all other books, architecture and objects.
+Lighting/mood: preserve continuous P4 night lighting and ordinary shelf occlusion; no selection glow or color coding.
+Materials/textures: aged cloth and leather, dark walnut, realistic shelf contact and rear-slot shadow.
+Constraints: Image 2 supplies group motion only; do not match an individual spine. Image 3 supplies night lighting only. Keep the group supported and upright. Use the supplied mask. No labels, text, symbols, front-facing covers, floating books, buttons, cards, glow or unrelated redraw.
+Avoid: idle-looking result, shadow-only change, individual-book matching, detached bottom edge, books leaving shelf, horizontal slide, large tilt, fanned books, changed architecture, lamp, typewriter, tray, window, CSS art, collage or 3D-toy appearance.

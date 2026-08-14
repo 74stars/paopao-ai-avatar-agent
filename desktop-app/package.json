@@ -1,10 +1,11 @@
 {
   "name": "paopao-desktop",
+  "productName": "泡泡",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "dist-electron/main.js",
-  "description": "泡泡桌面 Agent 与活书房",
+  "description": "泡泡桌面记录与活书房",
   "scripts": {
     "predev": "npm run rebuild:native",
     "dev": "npm run build:electron && concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
@@ -13,12 +14,16 @@
     "build:preload": "node scripts/build-preload.mjs",
     "build:electron": "npm run clean:electron && tsc -p electron/tsconfig.json --noEmit && tsc -p electron/tsconfig.main.json && npm run build:preload",
     "build": "npm run build:renderer && npm run build:electron",
+    "icons:generate": "node scripts/generate-icons.mjs",
+    "icons:check": "node scripts/check-icons.mjs",
     "prestart": "npm run rebuild:native",
     "start": "electron .",
     "test": "vitest run --passWithNoTests",
     "check": "tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
     "rebuild:native": "electron-rebuild --version 39.2.7 --only better-sqlite3 --which-module better-sqlite3 --force --module-dir .",
+    "predist": "npm run icons:check",
     "dist": "npm run build && npm run rebuild:native && electron-builder --win nsis",
+    "predist:mac": "npm run icons:check",
     "dist:mac": "npm run build && npm run rebuild:native && electron-builder --mac dmg zip --x64 --arm64"
   },
   "dependencies": {
@@ -29,6 +34,7 @@
     "@react-three/drei": "10.7.7",
     "@react-three/fiber": "9.4.0",
     "better-sqlite3": "12.6.2",
+    "lucide-react": "1.31.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "three": "0.182.0",
@@ -66,16 +72,20 @@
       "node_modules/better-sqlite3/**/*"
     ],
     "directories": {
+      "buildResources": "build",
       "output": "release"
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": "nsis",
       "artifactName": "Paopao-Setup-${version}.${ext}"
     },
     "mac": {
+      "icon": "build/icon.icns",
       "target": ["dmg", "zip"],
       "artifactName": "Paopao-${version}-${arch}.${ext}",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true
     },
     "nsis": {
       "oneClick": false,

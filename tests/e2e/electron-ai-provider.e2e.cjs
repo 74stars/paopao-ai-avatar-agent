@@ -88,11 +88,12 @@ async function runProviderE2E() {
   await library.locator("[data-testid='library-window']").waitFor({ state: "visible" });
   await library.waitForTimeout(500);
 
-  const canvasPath = await screenshot(library.locator(".library-world-canvas canvas"), "library-canvas.png");
-  const canvasPixels = analyzeCanvas(readFileSync(canvasPath));
-  assert.ok(canvasPixels.nonTransparentPixels > 10_000, "Library canvas is blank");
-  assert.ok(canvasPixels.luminanceRange > 20, "Library canvas is blank or nearly uniform");
-  report.checks.canvas = canvasPixels;
+  await library.locator("[data-testid='library-master-image']").evaluate((image) => image.decode());
+  const scenePath = await screenshot(library, "library-scene.png");
+  const scenePixels = analyzeCanvas(readFileSync(scenePath));
+  assert.ok(scenePixels.nonTransparentPixels > 10_000, "Library scene is blank");
+  assert.ok(scenePixels.luminanceRange > 20, "Library scene is blank or nearly uniform");
+  report.checks.scene = scenePixels;
 
   await library.locator("[data-testid='scene-settings']").evaluate((button) => button.click());
   const panel = library.locator("[data-testid='settings-panel']");
@@ -104,9 +105,17 @@ async function runProviderE2E() {
   assert.ok(geometry.scrollWidth <= geometry.clientWidth + 1, `Settings panel overflows horizontally: ${JSON.stringify(geometry)}`);
   assert.ok(geometry.left >= 0 && geometry.right <= geometry.viewportWidth + 1, `Settings panel is outside the viewport: ${JSON.stringify(geometry)}`);
 
+  const preset = library.locator("[data-testid='ai-provider-preset']");
+  assert.equal(await preset.inputValue(), "openai", "OpenAI should be the default provider preset");
+  assert.equal(await library.locator("[data-testid='ai-provider-advanced']").getAttribute("open"), null, "Known-provider technical fields should be collapsed");
+  await preset.selectOption("local");
+  assert.equal(await library.locator("[data-testid='ai-provider-api-key']").count(), 0, "Local preset should not request an API key");
+  await preset.selectOption("custom");
+  await library.locator("[data-testid='ai-provider-custom-fields']").waitFor({ state: "visible" });
+  await preset.selectOption("openai");
+  await library.locator("[data-testid='ai-provider-api-key']").waitFor({ state: "visible" });
+
   await library.locator("[data-testid='ai-provider-name']").fill("E2E Provider");
-  await library.locator("[data-testid='ai-provider-provider-id']").fill("e2e-compatible");
-  await library.locator("[data-testid='ai-provider-base-url']").fill("https://provider.invalid/v1");
   await library.locator("[data-testid='ai-provider-model']").fill("e2e-model");
   await library.locator("[data-testid='ai-provider-api-key']").fill("e2e-provider-write-only-secret");
   await library.locator("[data-testid='ai-provider-save']").click();
@@ -121,16 +130,56 @@ async function runProviderE2E() {
   await panel.evaluate((element) => { element.scrollTop = 0; });
   await screenshot(library, "settings-provider-direct.png");
 
+  const advanced = library.locator("[data-testid='ai-provider-advanced']");
+  await advanced.locator("summary").click();
+  await library.locator("[data-testid='ai-provider-timeout']").fill("90000");
+  await library.locator("[data-testid='ai-provider-save']").click();
+  assert.match(await row.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+
+  const editor = library.locator("[data-testid='ai-provider-editor']");
+  await editor.getByRole("button", { name: "取消编辑", exact: true }).click();
+  await row.getByRole("button", { name: "编辑", exact: true }).click();
+  assert.equal(await preset.inputValue(), "custom", "Modified preset should reopen as Custom");
+  await library.locator("[data-testid='ai-provider-custom-fields']").waitFor({ state: "visible" });
+  assert.equal(await library.locator("[data-testid='ai-provider-provider-id']").inputValue(), "openai");
+  assert.equal(await library.locator("[data-testid='ai-provider-protocol']").inputValue(), "openai_responses");
+  assert.equal(await library.locator("[data-testid='ai-provider-base-url']").inputValue(), "https://api.openai.com/v1");
+  assert.equal(await library.locator("[data-testid='ai-provider-auth-mode']").inputValue(), "bearer");
+  assert.equal(await library.locator("[data-testid='ai-provider-structured-output']").inputValue(), "json_schema");
+  assert.equal(await library.locator("[data-testid='ai-provider-timeout']").inputValue(), "90000");
+  assert.equal(await library.locator("[data-testid='ai-provider-model']").inputValue(), "e2e-model");
+  await library.locator("[data-testid='ai-provider-save']").click();
+  assert.match(await row.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+  const storedOpenAi = JSON.parse(readFileSync(profilePath, "utf8")).profiles.find((profile) => profile.name === "E2E Provider");
+  assert.equal(storedOpenAi.timeoutMs, 90_000, "Advanced timeout did not round-trip");
+  await screenshot(library, "settings-provider-custom-reopen.png");
+
   await row.getByRole("button", { name: "删除", exact: true }).click();
   await row.getByRole("button", { name: "确认删除", exact: true }).click();
   await row.waitFor({ state: "detached" });
+
+  await preset.selectOption("local");
+  await library.locator("[data-testid='ai-provider-name']").fill("E2E Local");
+  await library.locator("[data-testid='ai-provider-model']").fill("local-model");
+  assert.equal(await library.locator("[data-testid='ai-provider-api-key']").count(), 0, "Local preset should stay keyless when saved");
+  await library.locator("[data-testid='ai-provider-save']").click();
+  const localRow = library.locator(".ai-provider-row", { hasText: "E2E Local" });
+  await localRow.waitFor({ state: "visible" });
+  assert.match(await localRow.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+  const storedLocal = JSON.parse(readFileSync(profilePath, "utf8")).profiles.find((profile) => profile.name === "E2E Local");
+  assert.equal(storedLocal.authMode, "none");
+  assert.equal(storedLocal.baseUrl, "http://127.0.0.1:11434/v1");
+  await localRow.getByRole("button", { name: "删除", exact: true }).click();
+  await localRow.getByRole("button", { name: "确认删除", exact: true }).click();
+  await localRow.waitFor({ state: "detached" });
+
   await library.locator("[data-testid='ai-provider-tab-codex']").click();
   await library.locator("[data-testid='ai-provider-codex-home']").fill("~/.codex");
   await library.locator("[data-testid='ai-provider-codex-profile']").fill("work-profile");
   await library.locator("[data-testid='ai-provider-codex-home']").scrollIntoViewIfNeeded();
   await screenshot(library, "settings-provider-codex.png");
 
-  report.checks.settings = { ...geometry, credentialInputCleared: true, encryptedAtRest: true, deletedActiveProfile: true, codexEditorVisible: true };
+  report.checks.settings = { ...geometry, knownCompactSaved: true, advancedRoundTrip: true, modifiedProfileReopenedAsCustom: true, localSavedWithoutKey: true, credentialInputCleared: true, encryptedAtRest: true, deletedActiveProfile: true, codexEditorVisible: true };
   const rendererErrors = logs.filter((line) => line.includes("[renderer:error]"));
   assert.deepEqual(rendererErrors, [], `Renderer errors occurred: ${rendererErrors.join("\n")}`);
 }

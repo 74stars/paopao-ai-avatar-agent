@@ -31,7 +31,7 @@ export function RecordContent({ detail, onUpdated }: { detail: EntryDetailV1; on
       if (result.error.code === "REVISION_CONFLICT") await onUpdated();
       return;
     }
-    setMessage("记录内容已更新，AI 将重新整理。");
+    setMessage("当前版本已更新，正在重新整理。");
     await onUpdated();
   }
 
@@ -39,12 +39,13 @@ export function RecordContent({ detail, onUpdated }: { detail: EntryDetailV1; on
     <section className="reader-section record-content" aria-label="记录内容">
       <div className="record-content-heading">
         <h2>记录内容</h2>
-        <button type="button" onClick={() => setEditing((value) => !value)}>{editing ? "取消编辑" : "编辑记录"}</button>
+        <button type="button" onClick={() => setEditing((value) => !value)}>{editing ? "取消编辑" : "编辑记录内容"}</button>
       </div>
       {editing ? (
         <div className="record-editor">
+          <h3>编辑记录内容</h3>
           <textarea value={text} maxLength={50_000} disabled={busy} onChange={(event) => setText(event.target.value)} data-testid="revision-input" />
-          <button type="button" disabled={busy || !text.trim() || text === detail.currentText} onClick={() => void save()}>保存记录</button>
+          <button type="button" disabled={busy || !text.trim() || text === detail.currentText} onClick={() => void save()}>保存记录内容</button>
         </div>
       ) : <p className="current-record-text">{detail.currentText}</p>}
       {revised && (

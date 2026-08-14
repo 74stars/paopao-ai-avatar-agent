@@ -106,6 +106,8 @@ async function runWave4E2E() {
   let library = pages.library;
   const rendererErrors = [];
   const resourceFailures = [];
+  let firstEntryToken = "";
+  let secondEntryToken = "";
 
   const observeSurface = (surface, page) => {
     page.on("console", (message) => electronLog.push(`[renderer:${surface}:${message.type()}] ${message.text()}\n`));
@@ -173,6 +175,69 @@ async function runWave4E2E() {
     return pixels;
   });
 
+  await runCase("pet uses one unified click and drag surface", async () => {
+    const regions = await pet.locator(".pet-window").evaluate((root) => [root, ...root.querySelectorAll("*")].map((element) => getComputedStyle(element).getPropertyValue("-webkit-app-region")));
+    assert.equal(regions.some((region) => region === "drag" || region === "no-drag"), false, "Pet still splits interaction through app-region CSS");
+    return { mainProcessDrag: true, clickSurfaceSplit: false };
+  });
+
+  await runCase("single click is delayed and opens Capture", async () => {
+    assert.equal((await surfaceState("capture")).visible, false, "Capture must start hidden");
+    const started = Date.now();
+    await pet.locator(".pet-window").click();
+    await delay(220);
+    assert.equal((await surfaceState("capture")).visible, false, "Single-click action fired inside the double-click interval");
+    await waitForSurfaceVisibility("capture", true, 1_200);
+    const elapsedMs = Date.now() - started;
+    assert.ok(elapsedMs >= 330, `Single click fired too early (${elapsedMs}ms)`);
+    await capture.locator("[data-testid='capture-window']").waitFor({ state: "visible" });
+    await screenshot(capture, "capture-open.png");
+    return { elapsedMs };
+  });
+
+  await runCase("double click cancels single click and opens Library", async () => {
+    await capture.locator("[data-testid='capture-window']").evaluate(() => window.paopao.windows.hideCapture());
+    assert.equal((await surfaceState("capture")).visible, false);
+    assert.equal((await surfaceState("library")).visible, false);
+    await pet.locator(".pet-window").click();
+    await delay(90);
+    await pet.locator(".pet-window").click();
+    await waitForSurfaceVisibility("library", true, 1_000);
+    await delay(420);
+    assert.equal((await surfaceState("capture")).visible, false, "Double click also triggered the single-click Capture action");
+    return { intervalMs: 90 };
+  });
+
+  await runCase("pet keyboard opens Library without opening Capture", async () => {
+    await electronApplication.evaluate(async ({ BrowserWindow }) => {
+      const windows = BrowserWindow.getAllWindows();
+      const surface = (window) => {
+        try { return new URL(window.webContents.getURL()).searchParams.get("surface"); } catch { return null; }
+      };
+      windows.find((window) => surface(window) === "library")?.hide();
+      windows.find((window) => surface(window) === "pet")?.focus();
+    });
+    await waitForSurfaceVisibility("library", false, 1_000);
+    const petControl = pet.locator(".pet-window");
+    await petControl.focus();
+    assert.equal(await petControl.getAttribute("aria-keyshortcuts"), "Enter Space Shift+Enter");
+    await petControl.press("Shift+Enter");
+    await waitForSurfaceVisibility("library", true, 1_000);
+    assert.equal((await surfaceState("capture")).visible, false, "Pet Library keyboard action also opened Capture");
+    return { shortcut: "Shift+Enter", libraryOpened: true, captureStayedHidden: true };
+  });
+
+  await runCase("pet drag suppresses click on one native surface", async () => {
+    await library.evaluate(() => window.paopao?.windows.openLibrary && window.paopao.windows.openLibrary());
+    await library.waitForTimeout(100);
+    const captureBefore = await surfaceState("capture");
+    const dragResult = await dragSurfaceFrom("pet", pet.locator(".pet-window"), 20, 16);
+    assert.ok(dragResult.distance >= 8, `Pet BrowserWindow did not move far enough (${dragResult.distance}px)`);
+    await delay(450);
+    assert.equal((await surfaceState("capture")).visible, captureBefore.visible, "Pet drag triggered the single-click Capture action");
+    return { mainProcessDrag: true, clickSuppressed: true, movedPixels: dragResult.distance };
+  });
+
   await runCase("library screenshot and viewport evidence", async () => {
     await setLibraryContentSize(1180, 720);
     await library.locator("[data-testid='library-window']").waitFor({ state: "attached" });
@@ -219,31 +284,24 @@ async function runWave4E2E() {
     const pixels = analyzeRenderedPng(readFileSync(screenshotPath));
     assert.ok(pixels.opaqueRatio >= 0.5, `Living Library screenshot has insufficient rendered coverage: ${JSON.stringify(pixels)}`);
     assert.ok(pixels.distinctColorBuckets >= 16, `Living Library screenshot appears blank or uniform: ${JSON.stringify(pixels)}`);
-    await library.waitForFunction(() => typeof window.__paopaoSceneTest?.snapshot === "function");
-    const bubbleIdentity = await library.evaluate(() => {
-      const snapshot = window.__paopaoSceneTest.snapshot();
+    await library.locator("[data-testid='library-master-image']").evaluate((image) => image.decode());
+    const sceneContract = await library.evaluate(() => {
+      const scene = document.querySelector("[data-testid='library-master-scene']");
+      const image = document.querySelector("[data-testid='library-master-image']");
       return {
-        proxyCount: document.querySelectorAll("[data-scene-proxy='bubble']").length,
-        interactionCount: snapshot.objects.filter((object) => object.id === "bubble").length,
-        cutoutCount: snapshot.cutouts.filter((object) => object.id === "bubble").length
+        state: scene?.getAttribute("data-state") ?? null,
+        imageDecoded: image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
+        hitIds: Array.from(document.querySelectorAll("[data-scene-hit]")).map((element) => element.getAttribute("data-scene-hit")).sort(),
+        canvasCount: document.querySelectorAll("canvas").length
       };
     });
-    assert.deepEqual(bubbleIdentity, { proxyCount: 0, interactionCount: 0, cutoutCount: 0 }, `Living Library still contains a second Bubble identity: ${JSON.stringify(bubbleIdentity)}`);
-    return { geometry, pixels, bubbleIdentity };
-  });
-
-  await runCase("single click is delayed and opens Capture", async () => {
-    assert.equal((await surfaceState("capture")).visible, false, "Capture must start hidden");
-    const started = Date.now();
-    await pet.locator(".pet-window").click();
-    await delay(220);
-    assert.equal((await surfaceState("capture")).visible, false, "Single-click action fired inside the double-click interval");
-    await waitForSurfaceVisibility("capture", true, 1_200);
-    const elapsedMs = Date.now() - started;
-    assert.ok(elapsedMs >= 330, `Single click fired too early (${elapsedMs}ms)`);
-    await capture.locator("[data-testid='capture-window']").waitFor({ state: "visible" });
-    await screenshot(capture, "capture-open.png");
-    return { elapsedMs };
+    assert.deepEqual(sceneContract, {
+      state: "idle",
+      imageDecoded: true,
+      hitIds: ["letterbox", "shelf-diary", "shelf-goal", "shelf-other", "shelf-person", "shelf-reading", "shelf-thought", "theme-lamp", "typewriter"],
+      canvasCount: 0
+    }, `Living Library master scene contract is incomplete: ${JSON.stringify(sceneContract)}`);
+    return { geometry, pixels, sceneContract };
   });
 
   await runCase("Capture declares drag region and preserves control hit targets", async () => {
@@ -261,21 +319,6 @@ async function runWave4E2E() {
     return { cdpNativeDragProbePixels: dragResult.distance, nativeDragRequiresPlatformAcceptance: true };
   });
 
-  await runCase("double click cancels single click and opens Library", async () => {
-    assert.equal((await surfaceState("capture")).visible, false);
-    assert.equal((await surfaceState("library")).visible, false);
-    await pet.locator(".pet-window").click();
-    await delay(90);
-    await pet.locator(".pet-window").click();
-    await waitForSurfaceVisibility("library", true, 1_000);
-    await delay(420);
-    assert.equal((await surfaceState("capture")).visible, false, "Double click also triggered the single-click Capture action");
-    await library.locator("[data-testid='library-window']").waitFor({ state: "visible" });
-    await setLibraryContentSize(1180, 720);
-    await screenshot(library, "library-open.png");
-    return { intervalMs: 90 };
-  });
-
   await runCase("Library controls are reachable and do not trigger window drag", async () => {
     assert.equal(await appRegion(library, ".scene-drag-region"), "drag");
     const sceneGeometry = await library.evaluate(() => {
@@ -287,17 +330,56 @@ async function runWave4E2E() {
     const dragResult = await dragSurfaceFrom("library", library.locator(".scene-drag-region"), 24, 16);
 
     const stableBounds = (await surfaceState("library")).bounds;
-    const search = library.locator("[data-testid='scene-search-input']");
+    const search = await openSearch(library);
     await search.fill("control-hit-check");
     assert.equal(await search.inputValue(), "control-hit-check");
     assert.deepEqual((await surfaceState("library")).bounds, stableBounds, "Library search control moved the window");
     await search.fill("");
+    assert.equal(await library.locator("[data-testid='scene-search-submit']").isDisabled(), true, "Blank search submit remained enabled");
+    await search.press("Enter");
+    assert.equal(await library.locator("[data-testid='reader-sheet']").count(), 0, "Blank search opened the recent-record reader");
+    assert.equal(await search.isVisible(), true, "Blank search unexpectedly closed the search control");
 
-    await library.locator("[data-testid='scene-settings']").evaluate((button) => button.click());
-    await library.locator("[data-testid='settings-panel']").waitFor({ state: "visible" });
+    const settingsTrigger = library.locator("[data-testid='scene-settings']");
+    await settingsTrigger.focus();
+    await settingsTrigger.press("Enter");
+    const settingsDialog = library.locator("[data-testid='settings-panel']");
+    await settingsDialog.waitFor({ state: "visible" });
+    assert.equal(await settingsDialog.getAttribute("role"), "dialog");
+    assert.equal(await settingsDialog.getAttribute("aria-modal"), "true");
+    assert.equal(await settingsDialog.evaluate((element) => element.contains(document.activeElement)), true, "Settings did not receive focus");
+    await library.keyboard.press("Shift+Tab");
+    assert.equal(await settingsDialog.evaluate((element) => element.contains(document.activeElement)), true, "Shift+Tab escaped the settings dialog");
+    await library.keyboard.press("Tab");
+    assert.equal(await settingsDialog.evaluate((element) => element.contains(document.activeElement)), true, "Tab escaped the settings dialog");
     assert.deepEqual((await surfaceState("library")).bounds, stableBounds, "Library settings control moved the window");
     await library.getByRole("button", { name: "关闭设置", exact: true }).click();
-    return { cdpNativeDragProbePixels: dragResult.distance, nativeDragRequiresPlatformAcceptance: true };
+    await settingsDialog.waitFor({ state: "detached" });
+    assert.equal(await library.evaluate(() => document.activeElement?.getAttribute("data-testid")), "scene-settings", "Settings did not restore focus to its trigger");
+
+    const browseTrigger = library.locator("[data-testid='library-master-hit-letterbox']");
+    await browseTrigger.focus();
+    const sceneFocusStyle = await browseTrigger.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth, outlineColor: style.outlineColor };
+    });
+    assert.equal(sceneFocusStyle.outlineStyle, "solid", "Scene focus outline is not visible: " + JSON.stringify(sceneFocusStyle));
+    assert.ok(Number.parseFloat(sceneFocusStyle.outlineWidth) >= 2, "Scene focus outline is too thin: " + JSON.stringify(sceneFocusStyle));
+    assert.notEqual(sceneFocusStyle.outlineColor, "rgba(0, 0, 0, 0)", "Scene focus outline is transparent: " + JSON.stringify(sceneFocusStyle));
+    await browseTrigger.press("Enter");
+    const readerDialog = library.locator(".reader-sheet");
+    await readerDialog.waitFor({ state: "visible", timeout: 5_000 });
+    assert.equal(await readerDialog.getAttribute("role"), "dialog");
+    assert.equal(await readerDialog.getAttribute("aria-modal"), "true");
+    assert.equal(await readerDialog.evaluate((element) => element.contains(document.activeElement)), true, "Reader did not receive focus");
+    await library.keyboard.press("Shift+Tab");
+    assert.equal(await readerDialog.evaluate((element) => element.contains(document.activeElement)), true, "Shift+Tab escaped the reader dialog");
+    await library.keyboard.press("Tab");
+    assert.equal(await readerDialog.evaluate((element) => element.contains(document.activeElement)), true, "Tab escaped the reader dialog");
+    await library.locator("[data-testid='reader-close']").click();
+    await readerDialog.waitFor({ state: "detached" });
+    assert.equal(await library.evaluate(() => document.activeElement?.getAttribute("data-testid")), "library-master-hit-letterbox", "Reader did not restore focus to its trigger");
+    return { cdpNativeDragProbePixels: dragResult.distance, nativeDragRequiresPlatformAcceptance: true, modalFocusManaged: true };
   });
 
   await runCase("AI Provider profiles stay write-only and fit the settings panel", async () => {
@@ -314,6 +396,12 @@ async function runWave4E2E() {
     assert.ok(geometry.scrollWidth <= geometry.clientWidth + 1, `Provider settings overflow horizontally: ${JSON.stringify(geometry)}`);
     assert.equal(await library.locator("[data-testid='ai-provider-tab-direct']").getAttribute("class"), "active");
 
+    const preset = library.locator("[data-testid='ai-provider-preset']");
+    assert.equal(await preset.inputValue(), "openai", "OpenAI should be the default provider preset");
+    assert.equal(await library.locator("[data-testid='ai-provider-advanced']").getAttribute("open"), null, "Known-provider technical fields should be collapsed");
+    await preset.selectOption("custom");
+    await library.locator("[data-testid='ai-provider-custom-fields']").waitFor({ state: "visible" });
+
     await library.locator("[data-testid='ai-provider-name']").fill("E2E Provider");
     await library.locator("[data-testid='ai-provider-provider-id']").fill("e2e-compatible");
     await library.locator("[data-testid='ai-provider-base-url']").fill("https://provider.invalid/v1");
@@ -326,9 +414,11 @@ async function runWave4E2E() {
     const profilePath = path.join(userDataDirectory, "secrets", "ai-providers.v2.json");
     assert.equal(existsSync(profilePath), true, "Provider profile store was not created");
     assert.equal(readFileSync(profilePath, "utf8").includes("e2e-provider-write-only-secret"), false, "Provider credential was stored in plaintext");
-    await screenshot(library, "settings-provider-direct.png");
 
     const row = library.locator(".ai-provider-row", { hasText: "E2E Provider" });
+    await row.scrollIntoViewIfNeeded();
+    await row.getByRole("button", { name: "删除", exact: true }).waitFor({ state: "visible" });
+    await screenshot(library, "settings-provider-direct.png");
     await row.getByRole("button", { name: "删除", exact: true }).click();
     await row.getByRole("button", { name: "确认删除", exact: true }).click();
     await row.waitFor({ state: "detached" });
@@ -341,19 +431,11 @@ async function runWave4E2E() {
     return { ...geometry, encryptedProfileStore: true, directProfileDeleted: true, codexEditorVisible: true };
   });
 
-  await runCase("pet drag moves only Pet and suppresses click", async () => {
-    const captureBefore = await surfaceState("capture");
-    const dragResult = await dragSurfaceFrom("pet", pet.locator(".pet-window"), 20, 16);
-    assert.ok(dragResult.distance >= 8, `Pet pointer drag did not move the window (${dragResult.distance}px)`);
-    await delay(450);
-    assert.equal((await surfaceState("capture")).visible, captureBefore.visible, "Pet drag triggered the single-click Capture action");
-    return { movePixels: dragResult.distance };
-  });
-
   await runCase("Capture persists to SQLite and Library search opens detail", async () => {
     await pet.locator(".pet-window").click();
     await waitForSurfaceVisibility("capture", true, 1_200);
     const token = `wave4e2e${Date.now()}`;
+    firstEntryToken = token;
     const rawText = `E2E 验收记忆 ${token}，用于验证 Capture、SQLite 与活书房闭环。`;
     await capture.getByRole("button", { name: "记住", exact: true }).click();
     await capture.locator("[data-testid='capture-input']").fill(rawText);
@@ -367,7 +449,7 @@ async function runWave4E2E() {
     const databaseBytes = statSync(databasePath).size;
     assert.ok(databaseBytes > 0, "SQLite database is empty");
 
-    const search = library.locator("[data-testid='scene-search-input']");
+    const search = await openSearch(library);
     await search.fill(token);
     await search.press("Enter");
     const entry = library.locator(".entry-row", { hasText: token }).first();
@@ -376,12 +458,71 @@ async function runWave4E2E() {
     await entry.click();
     const detail = library.locator("[data-testid='entry-detail']");
     await detail.locator(".current-record-text", { hasText: token }).waitFor({ state: "visible", timeout: 5_000 });
-    assert.equal(await detail.getByText("记录内容", { exact: true }).count(), 1, "Record content heading is missing");
-    assert.equal(await detail.getByText("记录方式：桌面泡泡", { exact: true }).count(), 1, "Capture channel is not labeled as a record method");
+    assert.equal(await detail.getByText("记录内容", { exact: true }).count(), 1, "Accepted record heading is missing");
+    assert.equal(await detail.getByText("最初记录", { exact: true }).count(), 0, "Unedited record exposed a redundant original section");
+    assert.equal(await detail.getByText("记录入口：桌面端", { exact: true }).count(), 1, "Capture channel is not labeled as a record entry point");
     assert.equal(await detail.getByText("正文", { exact: true }).count(), 0, "Obsolete body terminology is still visible");
     assert.equal(await detail.getByText("纠正派生", { exact: true }).count(), 0, "Internal derivation terminology is still visible");
     await screenshot(library, "library-entry.png");
     return { token, databaseBytes, userRecordVisibleInList: true, recordSemanticsVisibleInDetail: true };
+  });
+
+  await runCase("reader transient state is scoped to one entry and closing clears search", async () => {
+    await library.locator("[data-testid='reader-close']").click();
+    const search = await openSearch(library);
+    assert.equal(await search.inputValue(), "", "Closing the reader retained a hidden search draft");
+
+    secondEntryToken = `wave4other${Date.now()}`;
+    const secondRawText = `E2E 验收记忆 ${secondEntryToken}，用于验证记录状态隔离。`;
+    await capture.locator("[data-testid='capture-input']").fill(secondRawText);
+    await capture.locator("[data-testid='capture-submit']").click();
+    await capture.locator("[data-testid='capture-status']").filter({ hasText: "已保存" }).waitFor({ state: "visible", timeout: 5_000 });
+    assert.equal(await capture.locator("[data-testid='capture-input']").inputValue(), "", "Second Capture did not complete before Library verification");
+    await library.waitForFunction(() => document.body.innerText.includes("共有 2 条记录"), undefined, { timeout: 5_000 });
+
+    await search.fill("E2E 验收记忆");
+    await search.press("Enter");
+    const firstEntry = library.locator(".entry-row", { hasText: firstEntryToken });
+    const secondEntry = library.locator(".entry-row", { hasText: secondEntryToken });
+    await firstEntry.waitFor({ state: "visible", timeout: 5_000 });
+    await secondEntry.waitFor({ state: "visible", timeout: 5_000 });
+
+    await firstEntry.click();
+    await library.getByRole("button", { name: "编辑记录内容", exact: true }).click();
+    await library.getByRole("button", { name: "删除记录", exact: true }).click();
+    assert.equal(await library.getByRole("button", { name: "确认删除记录", exact: true }).count(), 1, "First entry did not enter confirmation state");
+
+    await secondEntry.click();
+    await library.locator("[data-testid='entry-detail'] .current-record-text", { hasText: secondEntryToken }).waitFor({ state: "visible", timeout: 5_000 });
+    assert.equal(await library.locator("[data-testid='revision-input']").count(), 0, "Edit state leaked into the second entry");
+    assert.equal(await library.getByRole("button", { name: "删除记录", exact: true }).count(), 1, "Delete confirmation leaked into the second entry");
+    assert.equal(await library.getByText("旧导出不会被删除", { exact: false }).count(), 0, "Delete export warning leaked into the second entry");
+
+    await library.locator("[data-testid='reader-close']").click();
+    assert.equal(await searchInputValue(library), "", "Closing a filtered reader retained the committed query draft");
+    return { firstEntryToken, secondEntryToken, editStateIsolated: true, deleteConfirmationIsolated: true, searchCleared: true };
+  });
+
+  await runCase("backup restore publishes progress and refreshes Library without restart", async () => {
+    await library.locator("[data-testid='scene-settings']").evaluate((button) => button.click());
+    const dataManagement = library.locator("[data-testid='data-management']");
+    const initialBackup = dataManagement.locator(".backup-row").first();
+    await initialBackup.waitFor({ state: "visible", timeout: 5_000 });
+    await initialBackup.getByRole("button", { name: "恢复", exact: true }).click();
+    await dataManagement.getByText("再次点击确认恢复。恢复期间将暂停记录。", { exact: true }).waitFor({ state: "visible" });
+    await initialBackup.getByRole("button", { name: "确认恢复", exact: true }).click();
+
+    await dataManagement.locator(".operation-status", { hasText: "恢复完成" }).waitFor({ state: "visible", timeout: 15_000 });
+    assert.equal(await dataManagement.getByText("再次点击确认恢复。恢复期间将暂停记录。", { exact: true }).count(), 0, "Restore confirmation remained after completion");
+    await dataManagement.locator(".backup-row").nth(1).waitFor({ state: "visible", timeout: 5_000 });
+    await capture.locator("[data-testid='capture-status']").filter({ hasText: "备份恢复完成。" }).waitFor({ state: "visible", timeout: 5_000 });
+
+    await library.getByRole("button", { name: "关闭设置", exact: true }).click();
+    await library.getByText("共有 0 条记录", { exact: true }).waitFor({ state: "visible", timeout: 5_000 });
+    assert.equal(await searchInputValue(library), "", "Restore left a stale search query in the Library scene");
+    assert.equal(await library.getByText(firstEntryToken, { exact: false }).count(), 0, "Restored Library still rendered the first removed entry");
+    assert.equal(await library.getByText(secondEntryToken, { exact: false }).count(), 0, "Restored Library still rendered the second removed entry");
+    return { progressPublished: true, captureResumed: true, libraryRefreshed: true, backupsRefreshed: true };
   });
 
   await runCase("Library recreates after its native window is closed", async () => {
@@ -405,10 +546,7 @@ async function runWave4E2E() {
     observeSurface("library-reopened", reopenedPage);
     await reopenedPage.waitForLoadState("domcontentloaded");
     await reopenedPage.locator("[data-testid='library-window']").waitFor({ state: "visible", timeout: 5_000 });
-    await reopenedPage.waitForFunction(() => {
-      const bridge = window.__paopaoSceneTest;
-      return typeof bridge?.snapshot === "function" && bridge.snapshot().frame > 1;
-    }, undefined, { timeout: 10_000 });
+    await reopenedPage.locator("[data-testid='library-master-image']").evaluate((image) => image.decode());
     await reopenedPage.waitForTimeout(300);
     library = reopenedPage;
 
@@ -534,6 +672,17 @@ async function dragSurfaceFrom(surface, locator, deltaX, deltaY) {
 
 async function appRegion(page, selector) {
   return page.locator(selector).evaluate((element) => getComputedStyle(element).getPropertyValue("-webkit-app-region"));
+}
+
+async function searchInputValue(page) {
+  return (await openSearch(page)).inputValue();
+}
+
+async function openSearch(page) {
+  const input = page.locator("[data-testid='scene-search-input']");
+  if (await input.count() === 0) await page.locator("[data-testid='scene-search-toggle']").click();
+  await input.waitFor({ state: "visible" });
+  return input;
 }
 
 async function screenshot(page, filename, options = {}) {

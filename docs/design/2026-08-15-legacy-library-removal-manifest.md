@@ -1,0 +1,253 @@
+# Legacy library runtime removal manifest
+
+> Date: 2026-08-15
+> Status: approved removal batch for the `v0.1.0` convergence
+> Replacement: `LibraryMasterScene -> public/assets/library-master-v1`
+
+## Decision
+
+`LibraryWorld.tsx` is unreachable from the current Renderer entry. Its v4/v4.1 files are not runtime fallbacks; Vite only copied their public deployment duplicates because they lived under `public/`. The production master and all 12 approved runtime frames remain protected.
+
+This batch removes 221 files totaling 49,925,560 bytes. The design/public v4 sets contain 108 byte-identical pairs totaling 24,624,560 bytes on each side.
+
+## Directory summary
+
+| Path | Files | Bytes |
+| --- | ---: | ---: |
+| `desktop-app/design/assets/library-world-v4/` | 27 | 20,520,950 |
+| `desktop-app/design/assets/library-world-v4-1/` | 81 | 4,103,610 |
+| `desktop-app/public/assets/library-world-v4/` | 27 | 20,520,950 |
+| `desktop-app/public/assets/library-world-v4-1/` | 81 | 4,103,610 |
+
+## Verification required after removal
+
+- Renderer typecheck and production build.
+- Desktop unit/integration suite and `library-master-assets.test.ts`.
+- Electron Wave 4 E2E with no resource-loading errors.
+- Packaged `dist` contains no `library-world-v4` or `library-world-v4-1` directory.
+
+## Exact file inventory
+
+| Path | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `desktop-app/design/assets/library-world-v4-1/correspondence-cubby-back-day.png` | 43,236 | `23ef1d0d2c1a8da76d6996792acf18ff9e308a9780444018e2e5b6c72542c314` |
+| `desktop-app/design/assets/library-world-v4-1/correspondence-cubby-back-night.png` | 46,074 | `890b1d955d5e64a4af24573a3346b86d7af68fafbead2c11ba8c1c25113224b6` |
+| `desktop-app/design/assets/library-world-v4-1/correspondence-cubby-shade-day.png` | 1,989 | `fec0c7ceee3a2c12f661698dc83695140c2ae6ade37a8eed419b52e104b56372` |
+| `desktop-app/design/assets/library-world-v4-1/correspondence-cubby-shade-night.png` | 2,410 | `b8b3922d52c9eaa8c84d01c680844c88a003a1e88b6d09bc49fa0a1ae6ba0f10` |
+| `desktop-app/design/assets/library-world-v4-1/desk-back-day.png` | 79,458 | `a4339bf48bd88fd9421b6bc3805eddce07160ec4cfd1852925497c08805c9007` |
+| `desktop-app/design/assets/library-world-v4-1/desk-back-night.png` | 61,128 | `f495565933a8cda555623844f1e2d7cc4430df5456f0534e944cedfee10fb356` |
+| `desktop-app/design/assets/library-world-v4-1/desk-front-day.png` | 146,378 | `8b51e472d65f74a8345dd4dc5edc523b980c016ea9b0ff35196e4855a95ceee8` |
+| `desktop-app/design/assets/library-world-v4-1/desk-front-night.png` | 115,341 | `9c38de6c65966e134cf4cb2e82baa2138f770718926a8be088ad8416ff2b9df8` |
+| `desktop-app/design/assets/library-world-v4-1/envelope-stack-day.png` | 42,513 | `350bfb1d0d6f0ba61bee907360e4a6fbb082d479bd2a5e9292f127b201c00fd4` |
+| `desktop-app/design/assets/library-world-v4-1/envelope-stack-night.png` | 42,944 | `9287b02b89755c8453f1bb33e4e8dfacc187a1af40e1a6583f8a00444194446c` |
+| `desktop-app/design/assets/library-world-v4-1/lamp-body-day.png` | 17,648 | `23ad03e2344207dab820fe8a0fec0a750374df64f9561f0f8bc48bc95676b257` |
+| `desktop-app/design/assets/library-world-v4-1/lamp-body-night.png` | 13,273 | `85ad65e2907b5e5557dda0ef25f6bd40647e508e6b90d07c3c5336b2f25637c4` |
+| `desktop-app/design/assets/library-world-v4-1/lamp-desktop-pool-day.png` | 5,899 | `c3f02f4f5165c5c47ba8cb3b93b44c99bf2bb11c61a4a3366f73d90b020dfe02` |
+| `desktop-app/design/assets/library-world-v4-1/lamp-desktop-pool-night.png` | 6,911 | `8544bf130504f28ae6443c21c5c496e88042b5acf47b67f5665e0867a53c0ee3` |
+| `desktop-app/design/assets/library-world-v4-1/lamp-flame-day.png` | 2,722 | `f4d1e93ebf68e56a7aefabf64e04dd019b0b7d5482784b02f0a7ddc7406aed5e` |
+| `desktop-app/design/assets/library-world-v4-1/lamp-flame-night.png` | 2,623 | `92db61b0e230809a94473e1838c83c9caac43fba1972b1fe7eb7e1eade4703ba` |
+| `desktop-app/design/assets/library-world-v4-1/left-bay-back-day.png` | 47,980 | `b69e70ef0687d4bee8d929f687e80d5ceffbe84e82060a3b0d218ca5f350fad5` |
+| `desktop-app/design/assets/library-world-v4-1/left-bay-back-night.png` | 52,330 | `908693fcbceebe9153e128bda122a26484b55e623417f9d5f153330c8b2ed3a8` |
+| `desktop-app/design/assets/library-world-v4-1/left-bay-frame-day.png` | 167,675 | `36bc6cfa2b72dc616595803b6da50cff3984bae9c0149cdf518e34cd1dfee225` |
+| `desktop-app/design/assets/library-world-v4-1/left-bay-frame-night.png` | 140,612 | `7c56495e300d132d4ae938ea94a1d6675a2eb9b92afb0ce8fc9f54b5d93e8c38` |
+| `desktop-app/design/assets/library-world-v4-1/left-lower-books-plant-day.png` | 28,162 | `86cd6c5ed8c7a9b71078fc689d4de87b4a3f19ef2b4ef9c3bba21dd709705086` |
+| `desktop-app/design/assets/library-world-v4-1/left-lower-books-plant-night.png` | 22,592 | `cd10caaa03c0affc38d1a8eac0336d20a1bade7f5e58af7fb05c1f43937da412` |
+| `desktop-app/design/assets/library-world-v4-1/left-middle-plant-stack-day.png` | 15,186 | `8a93217401092cb6b872a40238c3f645b52a58b73424e11c5235dcc1d52eb9fa` |
+| `desktop-app/design/assets/library-world-v4-1/left-middle-plant-stack-night.png` | 12,940 | `83f497256515b1b014b09fa5b26109aae39ef997936576e2876f5fcf42a3ccda` |
+| `desktop-app/design/assets/library-world-v4-1/left-top-books-day.png` | 11,432 | `36c030aecad9ad46db30160a00efae1442e21fcca87a7e1ef1ad8d91c9868efb` |
+| `desktop-app/design/assets/library-world-v4-1/left-top-books-night.png` | 8,871 | `9423fe3f3bf4d87d97249e3eefef4231aadcbbee03080694834cd88fd9c5fed3` |
+| `desktop-app/design/assets/library-world-v4-1/letterbox-body-day.png` | 88,278 | `6191f52b4e47862b4287b0e1a82fe588dfe9d1b5ae7bd490080f64fd0502b87c` |
+| `desktop-app/design/assets/library-world-v4-1/letterbox-body-night.png` | 63,256 | `66073d584a2222077b727a1f9667e14c23b9a241df5cef2cc94b0aed248f715d` |
+| `desktop-app/design/assets/library-world-v4-1/lower-cubby-frame-day.png` | 150,010 | `e9d3b3d2869fdcf75b8a9cf58a2f76fd7176e9a80b4e1cc9d9f483332c426e43` |
+| `desktop-app/design/assets/library-world-v4-1/lower-cubby-frame-night.png` | 123,148 | `97bcc43bc0c6bb730f4156fdd56484e4623c5eeea693d04161345e1303357841` |
+| `desktop-app/design/assets/library-world-v4-1/manifest.json` | 60,051 | `fc1a143646005a19623561daf9dd9b56cd84bbe5d6d00d49bb66f8d1408df4fa` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-diary-day.png` | 35,776 | `fa9d835720fed740b087cd81a2b9d32ef4a54e3a6236eca7d46e8708a8ae44d7` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-diary-night.png` | 26,292 | `5fa3e5cd50e160d32bf4c9c7eed9ef13b3791915e2ebb315c04329f3aa3ae0a3` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-goal-day.png` | 37,449 | `79b3eba7e5c1a44bd1ed548cd56535b63b9042cafa2f59d0ff61b2695cb644e9` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-goal-night.png` | 27,994 | `48e9114cf58eaff4265c119cc268eb3597e5fc939f03cda5e0488b2c7d9f3da5` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-other-day.png` | 39,474 | `bf6bfba072b4b9c4d724816fcf2298c94282ecf140f530107e00797f923b601b` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-other-night.png` | 30,147 | `0217127c5b1c7585f13c2b66ca0e77e14374c7a0a44a9bd5ddb5b2584100aef1` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-person-day.png` | 34,841 | `3e5c3aab6eb68b9f71a9022cdcb88ab421f6143aa1659ad1ca4198d7aee79c79` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-person-night.png` | 25,231 | `19440efe31df9e269c840fb955d945642b2d9b4622f6a493f2e7d643fe58934e` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-reading-day.png` | 31,423 | `625f615cfffb2b29f472eab2c7f2d01337acc86bbc287f19f813ec8c8967b41e` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-reading-night.png` | 22,811 | `86004c527125d6d99e2d1d4dc327e626374f0bc93f3763dff10b40dd02936bdd` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-thought-day.png` | 31,924 | `0f98de0ae3b5869390eda578f90a5a093a7175ae49c8d45583d5a12244cd0fe0` |
+| `desktop-app/design/assets/library-world-v4-1/memory-books-thought-night.png` | 23,507 | `93da0b474b8a63fd39a19073c49c5ad106dbbcff5ad853f5a20bd11697205578` |
+| `desktop-app/design/assets/library-world-v4-1/search-magnifier-day.png` | 5,055 | `5c4df1adc3ca5756d88745318704a357688a3873822649c06b85e91a80d20cff` |
+| `desktop-app/design/assets/library-world-v4-1/search-magnifier-night.png` | 4,646 | `0ddb6eb3991ccdbe4a9fe6b6d3d07ce256161816197c2fc4613df648e079dfb5` |
+| `desktop-app/design/assets/library-world-v4-1/search-note-day.png` | 8,012 | `81c4f67986b5d73a8fd598928b753d37c648035858f97b96b7771d16d3c3c115` |
+| `desktop-app/design/assets/library-world-v4-1/search-note-night.png` | 6,959 | `da111a0060c0ce0b36215e30c0e45aebf20ccd323f14d38d99d806e23fdddf1b` |
+| `desktop-app/design/assets/library-world-v4-1/settings-fitting-day.png` | 3,276 | `1678c0ee7a3617660ae4d28e6206471ee5927ca3d87106604d0678ad71532c43` |
+| `desktop-app/design/assets/library-world-v4-1/settings-fitting-night.png` | 3,008 | `88c14cf1ebff3a2085156e3869c92f90a3e0d21ddbc4cafb1cfae2f0c3876a0c` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-body-day.png` | 123,114 | `5310f86e89d3e436e9df7b0f52d80b8d9401f8feb672fc8655339297aaa66097` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-body-night.png` | 91,155 | `3c70f28224d172d4a7f764478021a808d1148fe6b43c4922084cc0ca51ecf54c` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-cubby-back-day.png` | 48,057 | `6a8578aa23e5fbc2e572e3c1aa406b8126b47f7dd48653065814a56096755e52` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-cubby-back-night.png` | 51,766 | `089bdfd89195de0fe3d6bff56a80b990a825605517d803e77673ba960db730ab` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-cubby-shade-day.png` | 2,146 | `9e9f18a3f55e507b7bd407aa60302d7b91f6b989ed477591bce227426c8d83bd` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-cubby-shade-night.png` | 2,606 | `7d037f8ec9eb448d3f48674e01541c68b95983184d9a2b9236c2dfb0c4209ea5` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-keys-day.png` | 51,842 | `2ab73836306608a96d30a7cd2b2736473c420a55ad2d4481a26a15a7c66c85f8` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-keys-night.png` | 44,058 | `82aad3c3820124611f48df0b50709cec60a2a50b3dd52369eda8bf6fd8cef957` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-paper-day.png` | 25,140 | `f2bbdf78e22844722c4d05f5f85382a9f919189d90459acb5269c093d235ccde` |
+| `desktop-app/design/assets/library-world-v4-1/typewriter-paper-night.png` | 20,670 | `57f9fb36eb9690d212c80252c3ed2e172fc4af191d60945af8431b75d95e5cca` |
+| `desktop-app/design/assets/library-world-v4-1/upper-right-book-stack-day.png` | 16,004 | `f8dc92bc8ae6ac33939ac5ea608678f08ecd7a4fbc76368d3561a631855691b5` |
+| `desktop-app/design/assets/library-world-v4-1/upper-right-book-stack-night.png` | 12,429 | `0df39ce592fc56fbdd94945cd0aa951f2ec33b51ed953e11a4ce9b833f6b5ec5` |
+| `desktop-app/design/assets/library-world-v4-1/upper-right-cloche-day.png` | 31,983 | `a1cfb041e030e278bb78adaf43bba2139446f3b9e82165381fc4fe8097f4b6cb` |
+| `desktop-app/design/assets/library-world-v4-1/upper-right-cloche-night.png` | 25,172 | `d31b24b3e8b2ecdc84bbd91b57957517faf56ea1aaf1c588748687fa2d07ab44` |
+| `desktop-app/design/assets/library-world-v4-1/upper-shelf-back-day.png` | 89,469 | `aba2ad3ded1623f9f23d09afaa02a853906a26db5af7e6236ef2d57262a1660f` |
+| `desktop-app/design/assets/library-world-v4-1/upper-shelf-back-night.png` | 94,536 | `b520eebd4f2af5f49a07a9203813d342830c434ae46e42b058469ed3d5427b27` |
+| `desktop-app/design/assets/library-world-v4-1/upper-shelf-frame-day.png` | 135,726 | `2a2985bb3bb7eed4fbb744fd86472f9825fa88267d5b1e05bd7317d359b41975` |
+| `desktop-app/design/assets/library-world-v4-1/upper-shelf-frame-night.png` | 109,425 | `9848d6b986f4e8e80673c79d573416d26412adac08084119e4d89c091b998848` |
+| `desktop-app/design/assets/library-world-v4-1/wax-seal-day.png` | 3,153 | `c91f514de4c1bdd0d2f43d850489c51cde07f4429f829339eaf95f7c177d0b77` |
+| `desktop-app/design/assets/library-world-v4-1/wax-seal-night.png` | 2,554 | `234565ffef408c2d93931ae9fdec964f9e8bea22006e6a5945c5f7efdf54ea2c` |
+| `desktop-app/design/assets/library-world-v4-1/window-cool-wash-day.png` | 9,192 | `96f184c76875ad3c2fc9afa16878b416829ac2b70c0a3ef58121657500b7cb0c` |
+| `desktop-app/design/assets/library-world-v4-1/window-cool-wash-night.png` | 11,368 | `bdf32e5fd08f4522514681903bf28cbca3e98b07c5c1753e4ba30c3bfd1036b8` |
+| `desktop-app/design/assets/library-world-v4-1/window-far-city-day.png` | 109,098 | `36cd41904e155258a7ded7e766a132f4a4c876b3818da43b4c54ac70b84b080b` |
+| `desktop-app/design/assets/library-world-v4-1/window-far-city-night.png` | 81,404 | `e26899ae0d961e95ee2c00f3fc392703efedd0437555ae44581a96d378785270` |
+| `desktop-app/design/assets/library-world-v4-1/window-frame-day.png` | 106,294 | `e6956a16a055183074fe9412578a65e4a51a913fc9f91c7f6ef35c09f396c010` |
+| `desktop-app/design/assets/library-world-v4-1/window-frame-night.png` | 86,168 | `4cd51b65ef61ca441a9410e71df3c9071e773e2a7300d2ee5117f13919ac77ba` |
+| `desktop-app/design/assets/library-world-v4-1/window-near-city-lights-day.png` | 59,163 | `26d3823a7683ab48282891d9eb6c0ab6d04b4e64a453ca3d23f808672883b4cc` |
+| `desktop-app/design/assets/library-world-v4-1/window-near-city-lights-night.png` | 51,519 | `53031000368aa7ddb74e0a2ab28c93d19a20947147fbf5bf107598eed2bf071c` |
+| `desktop-app/design/assets/library-world-v4-1/window-plants-day.png` | 74,348 | `7f31240a060d5f1b8532104ab2ceb8eb0da2d96abd5d23f6ceed1946b2e704a6` |
+| `desktop-app/design/assets/library-world-v4-1/window-plants-night.png` | 60,899 | `98f80fba8a0db4ebd0355d0e0aa1992c156df92678410e42be74b1931ec916d3` |
+| `desktop-app/design/assets/library-world-v4-1/window-sky-day.png` | 274,088 | `3d5d65b9fc516987c946b2beab1090cfe17cd0e26e75e4a242fa0070aa0d6d63` |
+| `desktop-app/design/assets/library-world-v4-1/window-sky-night.png` | 178,169 | `976d57a1c440617aa4aa45d2581a69b21eae9d63518fa35a117dd09643d8f457` |
+| `desktop-app/design/assets/library-world-v4/desk-back.png` | 175,113 | `4643d1e0c9569c17f68a4202a9f31cfade1e0317f2a50f5d665adcc2f2d5f4e7` |
+| `desktop-app/design/assets/library-world-v4/desk-front.png` | 314,632 | `982e7818d27f364a61768617772240feb032e154fc5e38140a0fbb5482c50576` |
+| `desktop-app/design/assets/library-world-v4/envelope-stack.png` | 1,014,764 | `7d84acf59c7c28ad8b2bb22d6b46596b5067ef1cbbd539463cfe377c39df2a39` |
+| `desktop-app/design/assets/library-world-v4/gear.png` | 1,089,464 | `5649bae456de93f5bc0f50cea7fb16094947c5b8b392e980a569f23175c6ad12` |
+| `desktop-app/design/assets/library-world-v4/lamp-body.png` | 637,678 | `6384e38a1ac11d25220ceac24ca2bc8155367d97fbef94b2ed0f2ecce7098443` |
+| `desktop-app/design/assets/library-world-v4/lamp-glow.png` | 317,537 | `a651031c01c34c20481193fe1eafb3b5540ba212345b00c9c540bc0186fe2437` |
+| `desktop-app/design/assets/library-world-v4/letterbox-body.png` | 964,800 | `6b765940c6be3999f92721661ebf4829db02fc2a2e9e4a5858778861ba4aec4d` |
+| `desktop-app/design/assets/library-world-v4/magnifier-body.png` | 485,375 | `f28263aa667631c9482a3ce827102ff53a59355e26ace59ff579be7db093e2ae` |
+| `desktop-app/design/assets/library-world-v4/magnifier-note.png` | 668,327 | `e23afc69e5b8be6d87b7c353f8510e67c3c783ce49c1dd04b0f847b08d37c337` |
+| `desktop-app/design/assets/library-world-v4/manifest.json` | 24,754 | `81554ac110abbd78031047b7f8808dbc674809683c35737f6d5e320385737aa2` |
+| `desktop-app/design/assets/library-world-v4/memory-books-diary.png` | 997,209 | `b35a04aafdc843f8f5309f50314a16b89cdf49ed33e12e31d3fe45bf2e08beae` |
+| `desktop-app/design/assets/library-world-v4/memory-books-goal.png` | 1,160,597 | `f88e7bab5cb177f1c1c672dc13e70035d36391e089b0c2da8421b61ed880b526` |
+| `desktop-app/design/assets/library-world-v4/memory-books-other.png` | 1,271,598 | `8440a8f56d4f86627db6c1e1b2345f44f6dc79ded535486302bb736771f513b2` |
+| `desktop-app/design/assets/library-world-v4/memory-books-person.png` | 1,228,143 | `085d5c00b3cf7638976ad55664dc55eb77b62c113e3eee4688cae3fb8401fc7e` |
+| `desktop-app/design/assets/library-world-v4/memory-books-reading.png` | 1,271,587 | `4593e0709107d895ab13fd88535ac4e44d28b41caadda1078ab7277d40cf92ae` |
+| `desktop-app/design/assets/library-world-v4/memory-books-thought.png` | 1,370,729 | `64f6937fa98f97aa8adbdc862b9f7cf90ff082b94b50358c6b42cf90e9ddb0b6` |
+| `desktop-app/design/assets/library-world-v4/shelf-back.png` | 470,480 | `6078b8571ea1573dc6c34ad81b47f46ed40cf93f364f9507b95d83ce74f5ed40` |
+| `desktop-app/design/assets/library-world-v4/shelf-frame.png` | 193,993 | `1c181f776b9f03c1ef61acc6e4af54365ce2639dd6a1d2204ef7ce7c338e3873` |
+| `desktop-app/design/assets/library-world-v4/typewriter-body.png` | 896,041 | `1ce0f3cc41f4ad24a39d7b966c27635d42d1bf1a2c0d9ae6569de5f2d1828650` |
+| `desktop-app/design/assets/library-world-v4/typewriter-keys.png` | 531,314 | `0511ec53296a880b2cc1c15c519ec2348526a8a4b32aaa5471241dda5f443aae` |
+| `desktop-app/design/assets/library-world-v4/typewriter-paper.png` | 1,147,849 | `f61d4aa3617ef08c8a82228a1771feb01e9e744c1bdcda025627ad44d4bb4862` |
+| `desktop-app/design/assets/library-world-v4/wax-seal.png` | 761,058 | `8b46e294d6313f315aefc78d0df3106942d20253b71f2e147b5b1db17058fffc` |
+| `desktop-app/design/assets/library-world-v4/window-far-city.png` | 482,593 | `0d3430c35e8b25a4609f4a18468080c4166058ff890314d48d3e4ef7b405abba` |
+| `desktop-app/design/assets/library-world-v4/window-frame.png` | 612,085 | `c14b1c3301f4b0b06d3eb3a4c1273e388718fc86e44dc6934b804ff3e8239423` |
+| `desktop-app/design/assets/library-world-v4/window-near-city-lights.png` | 565,442 | `ae6d15043dc92d3a440069d61218ae34f16807723d4776531d6b87614265d4a7` |
+| `desktop-app/design/assets/library-world-v4/window-plants.png` | 697,095 | `546da8a4b9c0c140e4912cd64c797a67094979d057c609d971f577ecf78de2dd` |
+| `desktop-app/design/assets/library-world-v4/window-sky.png` | 1,170,693 | `25e892ef8747af2cbdf6c7f655cbc1bf89dc4a0fc0fde1840e289166aca504f5` |
+| `desktop-app/public/assets/library-day.webp` | 212,978 | `225f1f4c6673b186bb23e381c444bf4e62f58b4b0c10adf9e6e604ff0c07bfd3` |
+| `desktop-app/public/assets/library-night.webp` | 198,068 | `f099257428364242b85df03706c1f488bad4ef46596ed33a47f0a55ebc5fffa9` |
+| `desktop-app/public/assets/library-world-v4-1/correspondence-cubby-back-day.png` | 43,236 | `23ef1d0d2c1a8da76d6996792acf18ff9e308a9780444018e2e5b6c72542c314` |
+| `desktop-app/public/assets/library-world-v4-1/correspondence-cubby-back-night.png` | 46,074 | `890b1d955d5e64a4af24573a3346b86d7af68fafbead2c11ba8c1c25113224b6` |
+| `desktop-app/public/assets/library-world-v4-1/correspondence-cubby-shade-day.png` | 1,989 | `fec0c7ceee3a2c12f661698dc83695140c2ae6ade37a8eed419b52e104b56372` |
+| `desktop-app/public/assets/library-world-v4-1/correspondence-cubby-shade-night.png` | 2,410 | `b8b3922d52c9eaa8c84d01c680844c88a003a1e88b6d09bc49fa0a1ae6ba0f10` |
+| `desktop-app/public/assets/library-world-v4-1/desk-back-day.png` | 79,458 | `a4339bf48bd88fd9421b6bc3805eddce07160ec4cfd1852925497c08805c9007` |
+| `desktop-app/public/assets/library-world-v4-1/desk-back-night.png` | 61,128 | `f495565933a8cda555623844f1e2d7cc4430df5456f0534e944cedfee10fb356` |
+| `desktop-app/public/assets/library-world-v4-1/desk-front-day.png` | 146,378 | `8b51e472d65f74a8345dd4dc5edc523b980c016ea9b0ff35196e4855a95ceee8` |
+| `desktop-app/public/assets/library-world-v4-1/desk-front-night.png` | 115,341 | `9c38de6c65966e134cf4cb2e82baa2138f770718926a8be088ad8416ff2b9df8` |
+| `desktop-app/public/assets/library-world-v4-1/envelope-stack-day.png` | 42,513 | `350bfb1d0d6f0ba61bee907360e4a6fbb082d479bd2a5e9292f127b201c00fd4` |
+| `desktop-app/public/assets/library-world-v4-1/envelope-stack-night.png` | 42,944 | `9287b02b89755c8453f1bb33e4e8dfacc187a1af40e1a6583f8a00444194446c` |
+| `desktop-app/public/assets/library-world-v4-1/lamp-body-day.png` | 17,648 | `23ad03e2344207dab820fe8a0fec0a750374df64f9561f0f8bc48bc95676b257` |
+| `desktop-app/public/assets/library-world-v4-1/lamp-body-night.png` | 13,273 | `85ad65e2907b5e5557dda0ef25f6bd40647e508e6b90d07c3c5336b2f25637c4` |
+| `desktop-app/public/assets/library-world-v4-1/lamp-desktop-pool-day.png` | 5,899 | `c3f02f4f5165c5c47ba8cb3b93b44c99bf2bb11c61a4a3366f73d90b020dfe02` |
+| `desktop-app/public/assets/library-world-v4-1/lamp-desktop-pool-night.png` | 6,911 | `8544bf130504f28ae6443c21c5c496e88042b5acf47b67f5665e0867a53c0ee3` |
+| `desktop-app/public/assets/library-world-v4-1/lamp-flame-day.png` | 2,722 | `f4d1e93ebf68e56a7aefabf64e04dd019b0b7d5482784b02f0a7ddc7406aed5e` |
+| `desktop-app/public/assets/library-world-v4-1/lamp-flame-night.png` | 2,623 | `92db61b0e230809a94473e1838c83c9caac43fba1972b1fe7eb7e1eade4703ba` |
+| `desktop-app/public/assets/library-world-v4-1/left-bay-back-day.png` | 47,980 | `b69e70ef0687d4bee8d929f687e80d5ceffbe84e82060a3b0d218ca5f350fad5` |
+| `desktop-app/public/assets/library-world-v4-1/left-bay-back-night.png` | 52,330 | `908693fcbceebe9153e128bda122a26484b55e623417f9d5f153330c8b2ed3a8` |
+| `desktop-app/public/assets/library-world-v4-1/left-bay-frame-day.png` | 167,675 | `36bc6cfa2b72dc616595803b6da50cff3984bae9c0149cdf518e34cd1dfee225` |
+| `desktop-app/public/assets/library-world-v4-1/left-bay-frame-night.png` | 140,612 | `7c56495e300d132d4ae938ea94a1d6675a2eb9b92afb0ce8fc9f54b5d93e8c38` |
+| `desktop-app/public/assets/library-world-v4-1/left-lower-books-plant-day.png` | 28,162 | `86cd6c5ed8c7a9b71078fc689d4de87b4a3f19ef2b4ef9c3bba21dd709705086` |
+| `desktop-app/public/assets/library-world-v4-1/left-lower-books-plant-night.png` | 22,592 | `cd10caaa03c0affc38d1a8eac0336d20a1bade7f5e58af7fb05c1f43937da412` |
+| `desktop-app/public/assets/library-world-v4-1/left-middle-plant-stack-day.png` | 15,186 | `8a93217401092cb6b872a40238c3f645b52a58b73424e11c5235dcc1d52eb9fa` |
+| `desktop-app/public/assets/library-world-v4-1/left-middle-plant-stack-night.png` | 12,940 | `83f497256515b1b014b09fa5b26109aae39ef997936576e2876f5fcf42a3ccda` |
+| `desktop-app/public/assets/library-world-v4-1/left-top-books-day.png` | 11,432 | `36c030aecad9ad46db30160a00efae1442e21fcca87a7e1ef1ad8d91c9868efb` |
+| `desktop-app/public/assets/library-world-v4-1/left-top-books-night.png` | 8,871 | `9423fe3f3bf4d87d97249e3eefef4231aadcbbee03080694834cd88fd9c5fed3` |
+| `desktop-app/public/assets/library-world-v4-1/letterbox-body-day.png` | 88,278 | `6191f52b4e47862b4287b0e1a82fe588dfe9d1b5ae7bd490080f64fd0502b87c` |
+| `desktop-app/public/assets/library-world-v4-1/letterbox-body-night.png` | 63,256 | `66073d584a2222077b727a1f9667e14c23b9a241df5cef2cc94b0aed248f715d` |
+| `desktop-app/public/assets/library-world-v4-1/lower-cubby-frame-day.png` | 150,010 | `e9d3b3d2869fdcf75b8a9cf58a2f76fd7176e9a80b4e1cc9d9f483332c426e43` |
+| `desktop-app/public/assets/library-world-v4-1/lower-cubby-frame-night.png` | 123,148 | `97bcc43bc0c6bb730f4156fdd56484e4623c5eeea693d04161345e1303357841` |
+| `desktop-app/public/assets/library-world-v4-1/manifest.json` | 60,051 | `fc1a143646005a19623561daf9dd9b56cd84bbe5d6d00d49bb66f8d1408df4fa` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-diary-day.png` | 35,776 | `fa9d835720fed740b087cd81a2b9d32ef4a54e3a6236eca7d46e8708a8ae44d7` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-diary-night.png` | 26,292 | `5fa3e5cd50e160d32bf4c9c7eed9ef13b3791915e2ebb315c04329f3aa3ae0a3` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-goal-day.png` | 37,449 | `79b3eba7e5c1a44bd1ed548cd56535b63b9042cafa2f59d0ff61b2695cb644e9` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-goal-night.png` | 27,994 | `48e9114cf58eaff4265c119cc268eb3597e5fc939f03cda5e0488b2c7d9f3da5` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-other-day.png` | 39,474 | `bf6bfba072b4b9c4d724816fcf2298c94282ecf140f530107e00797f923b601b` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-other-night.png` | 30,147 | `0217127c5b1c7585f13c2b66ca0e77e14374c7a0a44a9bd5ddb5b2584100aef1` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-person-day.png` | 34,841 | `3e5c3aab6eb68b9f71a9022cdcb88ab421f6143aa1659ad1ca4198d7aee79c79` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-person-night.png` | 25,231 | `19440efe31df9e269c840fb955d945642b2d9b4622f6a493f2e7d643fe58934e` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-reading-day.png` | 31,423 | `625f615cfffb2b29f472eab2c7f2d01337acc86bbc287f19f813ec8c8967b41e` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-reading-night.png` | 22,811 | `86004c527125d6d99e2d1d4dc327e626374f0bc93f3763dff10b40dd02936bdd` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-thought-day.png` | 31,924 | `0f98de0ae3b5869390eda578f90a5a093a7175ae49c8d45583d5a12244cd0fe0` |
+| `desktop-app/public/assets/library-world-v4-1/memory-books-thought-night.png` | 23,507 | `93da0b474b8a63fd39a19073c49c5ad106dbbcff5ad853f5a20bd11697205578` |
+| `desktop-app/public/assets/library-world-v4-1/search-magnifier-day.png` | 5,055 | `5c4df1adc3ca5756d88745318704a357688a3873822649c06b85e91a80d20cff` |
+| `desktop-app/public/assets/library-world-v4-1/search-magnifier-night.png` | 4,646 | `0ddb6eb3991ccdbe4a9fe6b6d3d07ce256161816197c2fc4613df648e079dfb5` |
+| `desktop-app/public/assets/library-world-v4-1/search-note-day.png` | 8,012 | `81c4f67986b5d73a8fd598928b753d37c648035858f97b96b7771d16d3c3c115` |
+| `desktop-app/public/assets/library-world-v4-1/search-note-night.png` | 6,959 | `da111a0060c0ce0b36215e30c0e45aebf20ccd323f14d38d99d806e23fdddf1b` |
+| `desktop-app/public/assets/library-world-v4-1/settings-fitting-day.png` | 3,276 | `1678c0ee7a3617660ae4d28e6206471ee5927ca3d87106604d0678ad71532c43` |
+| `desktop-app/public/assets/library-world-v4-1/settings-fitting-night.png` | 3,008 | `88c14cf1ebff3a2085156e3869c92f90a3e0d21ddbc4cafb1cfae2f0c3876a0c` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-body-day.png` | 123,114 | `5310f86e89d3e436e9df7b0f52d80b8d9401f8feb672fc8655339297aaa66097` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-body-night.png` | 91,155 | `3c70f28224d172d4a7f764478021a808d1148fe6b43c4922084cc0ca51ecf54c` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-cubby-back-day.png` | 48,057 | `6a8578aa23e5fbc2e572e3c1aa406b8126b47f7dd48653065814a56096755e52` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-cubby-back-night.png` | 51,766 | `089bdfd89195de0fe3d6bff56a80b990a825605517d803e77673ba960db730ab` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-cubby-shade-day.png` | 2,146 | `9e9f18a3f55e507b7bd407aa60302d7b91f6b989ed477591bce227426c8d83bd` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-cubby-shade-night.png` | 2,606 | `7d037f8ec9eb448d3f48674e01541c68b95983184d9a2b9236c2dfb0c4209ea5` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-keys-day.png` | 51,842 | `2ab73836306608a96d30a7cd2b2736473c420a55ad2d4481a26a15a7c66c85f8` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-keys-night.png` | 44,058 | `82aad3c3820124611f48df0b50709cec60a2a50b3dd52369eda8bf6fd8cef957` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-paper-day.png` | 25,140 | `f2bbdf78e22844722c4d05f5f85382a9f919189d90459acb5269c093d235ccde` |
+| `desktop-app/public/assets/library-world-v4-1/typewriter-paper-night.png` | 20,670 | `57f9fb36eb9690d212c80252c3ed2e172fc4af191d60945af8431b75d95e5cca` |
+| `desktop-app/public/assets/library-world-v4-1/upper-right-book-stack-day.png` | 16,004 | `f8dc92bc8ae6ac33939ac5ea608678f08ecd7a4fbc76368d3561a631855691b5` |
+| `desktop-app/public/assets/library-world-v4-1/upper-right-book-stack-night.png` | 12,429 | `0df39ce592fc56fbdd94945cd0aa951f2ec33b51ed953e11a4ce9b833f6b5ec5` |
+| `desktop-app/public/assets/library-world-v4-1/upper-right-cloche-day.png` | 31,983 | `a1cfb041e030e278bb78adaf43bba2139446f3b9e82165381fc4fe8097f4b6cb` |
+| `desktop-app/public/assets/library-world-v4-1/upper-right-cloche-night.png` | 25,172 | `d31b24b3e8b2ecdc84bbd91b57957517faf56ea1aaf1c588748687fa2d07ab44` |
+| `desktop-app/public/assets/library-world-v4-1/upper-shelf-back-day.png` | 89,469 | `aba2ad3ded1623f9f23d09afaa02a853906a26db5af7e6236ef2d57262a1660f` |
+| `desktop-app/public/assets/library-world-v4-1/upper-shelf-back-night.png` | 94,536 | `b520eebd4f2af5f49a07a9203813d342830c434ae46e42b058469ed3d5427b27` |
+| `desktop-app/public/assets/library-world-v4-1/upper-shelf-frame-day.png` | 135,726 | `2a2985bb3bb7eed4fbb744fd86472f9825fa88267d5b1e05bd7317d359b41975` |
+| `desktop-app/public/assets/library-world-v4-1/upper-shelf-frame-night.png` | 109,425 | `9848d6b986f4e8e80673c79d573416d26412adac08084119e4d89c091b998848` |
+| `desktop-app/public/assets/library-world-v4-1/wax-seal-day.png` | 3,153 | `c91f514de4c1bdd0d2f43d850489c51cde07f4429f829339eaf95f7c177d0b77` |
+| `desktop-app/public/assets/library-world-v4-1/wax-seal-night.png` | 2,554 | `234565ffef408c2d93931ae9fdec964f9e8bea22006e6a5945c5f7efdf54ea2c` |
+| `desktop-app/public/assets/library-world-v4-1/window-cool-wash-day.png` | 9,192 | `96f184c76875ad3c2fc9afa16878b416829ac2b70c0a3ef58121657500b7cb0c` |
+| `desktop-app/public/assets/library-world-v4-1/window-cool-wash-night.png` | 11,368 | `bdf32e5fd08f4522514681903bf28cbca3e98b07c5c1753e4ba30c3bfd1036b8` |
+| `desktop-app/public/assets/library-world-v4-1/window-far-city-day.png` | 109,098 | `36cd41904e155258a7ded7e766a132f4a4c876b3818da43b4c54ac70b84b080b` |
+| `desktop-app/public/assets/library-world-v4-1/window-far-city-night.png` | 81,404 | `e26899ae0d961e95ee2c00f3fc392703efedd0437555ae44581a96d378785270` |
+| `desktop-app/public/assets/library-world-v4-1/window-frame-day.png` | 106,294 | `e6956a16a055183074fe9412578a65e4a51a913fc9f91c7f6ef35c09f396c010` |
+| `desktop-app/public/assets/library-world-v4-1/window-frame-night.png` | 86,168 | `4cd51b65ef61ca441a9410e71df3c9071e773e2a7300d2ee5117f13919ac77ba` |
+| `desktop-app/public/assets/library-world-v4-1/window-near-city-lights-day.png` | 59,163 | `26d3823a7683ab48282891d9eb6c0ab6d04b4e64a453ca3d23f808672883b4cc` |
+| `desktop-app/public/assets/library-world-v4-1/window-near-city-lights-night.png` | 51,519 | `53031000368aa7ddb74e0a2ab28c93d19a20947147fbf5bf107598eed2bf071c` |
+| `desktop-app/public/assets/library-world-v4-1/window-plants-day.png` | 74,348 | `7f31240a060d5f1b8532104ab2ceb8eb0da2d96abd5d23f6ceed1946b2e704a6` |
+| `desktop-app/public/assets/library-world-v4-1/window-plants-night.png` | 60,899 | `98f80fba8a0db4ebd0355d0e0aa1992c156df92678410e42be74b1931ec916d3` |
+| `desktop-app/public/assets/library-world-v4-1/window-sky-day.png` | 274,088 | `3d5d65b9fc516987c946b2beab1090cfe17cd0e26e75e4a242fa0070aa0d6d63` |
+| `desktop-app/public/assets/library-world-v4-1/window-sky-night.png` | 178,169 | `976d57a1c440617aa4aa45d2581a69b21eae9d63518fa35a117dd09643d8f457` |
+| `desktop-app/public/assets/library-world-v4/desk-back.png` | 175,113 | `4643d1e0c9569c17f68a4202a9f31cfade1e0317f2a50f5d665adcc2f2d5f4e7` |
+| `desktop-app/public/assets/library-world-v4/desk-front.png` | 314,632 | `982e7818d27f364a61768617772240feb032e154fc5e38140a0fbb5482c50576` |
+| `desktop-app/public/assets/library-world-v4/envelope-stack.png` | 1,014,764 | `7d84acf59c7c28ad8b2bb22d6b46596b5067ef1cbbd539463cfe377c39df2a39` |
+| `desktop-app/public/assets/library-world-v4/gear.png` | 1,089,464 | `5649bae456de93f5bc0f50cea7fb16094947c5b8b392e980a569f23175c6ad12` |
+| `desktop-app/public/assets/library-world-v4/lamp-body.png` | 637,678 | `6384e38a1ac11d25220ceac24ca2bc8155367d97fbef94b2ed0f2ecce7098443` |
+| `desktop-app/public/assets/library-world-v4/lamp-glow.png` | 317,537 | `a651031c01c34c20481193fe1eafb3b5540ba212345b00c9c540bc0186fe2437` |
+| `desktop-app/public/assets/library-world-v4/letterbox-body.png` | 964,800 | `6b765940c6be3999f92721661ebf4829db02fc2a2e9e4a5858778861ba4aec4d` |
+| `desktop-app/public/assets/library-world-v4/magnifier-body.png` | 485,375 | `f28263aa667631c9482a3ce827102ff53a59355e26ace59ff579be7db093e2ae` |
+| `desktop-app/public/assets/library-world-v4/magnifier-note.png` | 668,327 | `e23afc69e5b8be6d87b7c353f8510e67c3c783ce49c1dd04b0f847b08d37c337` |
+| `desktop-app/public/assets/library-world-v4/manifest.json` | 24,754 | `81554ac110abbd78031047b7f8808dbc674809683c35737f6d5e320385737aa2` |
+| `desktop-app/public/assets/library-world-v4/memory-books-diary.png` | 997,209 | `b35a04aafdc843f8f5309f50314a16b89cdf49ed33e12e31d3fe45bf2e08beae` |
+| `desktop-app/public/assets/library-world-v4/memory-books-goal.png` | 1,160,597 | `f88e7bab5cb177f1c1c672dc13e70035d36391e089b0c2da8421b61ed880b526` |
+| `desktop-app/public/assets/library-world-v4/memory-books-other.png` | 1,271,598 | `8440a8f56d4f86627db6c1e1b2345f44f6dc79ded535486302bb736771f513b2` |
+| `desktop-app/public/assets/library-world-v4/memory-books-person.png` | 1,228,143 | `085d5c00b3cf7638976ad55664dc55eb77b62c113e3eee4688cae3fb8401fc7e` |
+| `desktop-app/public/assets/library-world-v4/memory-books-reading.png` | 1,271,587 | `4593e0709107d895ab13fd88535ac4e44d28b41caadda1078ab7277d40cf92ae` |
+| `desktop-app/public/assets/library-world-v4/memory-books-thought.png` | 1,370,729 | `64f6937fa98f97aa8adbdc862b9f7cf90ff082b94b50358c6b42cf90e9ddb0b6` |
+| `desktop-app/public/assets/library-world-v4/shelf-back.png` | 470,480 | `6078b8571ea1573dc6c34ad81b47f46ed40cf93f364f9507b95d83ce74f5ed40` |
+| `desktop-app/public/assets/library-world-v4/shelf-frame.png` | 193,993 | `1c181f776b9f03c1ef61acc6e4af54365ce2639dd6a1d2204ef7ce7c338e3873` |
+| `desktop-app/public/assets/library-world-v4/typewriter-body.png` | 896,041 | `1ce0f3cc41f4ad24a39d7b966c27635d42d1bf1a2c0d9ae6569de5f2d1828650` |
+| `desktop-app/public/assets/library-world-v4/typewriter-keys.png` | 531,314 | `0511ec53296a880b2cc1c15c519ec2348526a8a4b32aaa5471241dda5f443aae` |
+| `desktop-app/public/assets/library-world-v4/typewriter-paper.png` | 1,147,849 | `f61d4aa3617ef08c8a82228a1771feb01e9e744c1bdcda025627ad44d4bb4862` |
+| `desktop-app/public/assets/library-world-v4/wax-seal.png` | 761,058 | `8b46e294d6313f315aefc78d0df3106942d20253b71f2e147b5b1db17058fffc` |
+| `desktop-app/public/assets/library-world-v4/window-far-city.png` | 482,593 | `0d3430c35e8b25a4609f4a18468080c4166058ff890314d48d3e4ef7b405abba` |
+| `desktop-app/public/assets/library-world-v4/window-frame.png` | 612,085 | `c14b1c3301f4b0b06d3eb3a4c1273e388718fc86e44dc6934b804ff3e8239423` |
+| `desktop-app/public/assets/library-world-v4/window-near-city-lights.png` | 565,442 | `ae6d15043dc92d3a440069d61218ae34f16807723d4776531d6b87614265d4a7` |
+| `desktop-app/public/assets/library-world-v4/window-plants.png` | 697,095 | `546da8a4b9c0c140e4912cd64c797a67094979d057c609d971f577ecf78de2dd` |
+| `desktop-app/public/assets/library-world-v4/window-sky.png` | 1,170,693 | `25e892ef8747af2cbdf6c7f655cbc1bf89dc4a0fc0fde1840e289166aca504f5` |
+| `desktop-app/public/assets/paopao.png` | 126,292 | `d4d223d7e4b8b18fefb3366f7754c9ba5fa72dad44b4524abf8dff81b580ec5f` |
+| `desktop-app/public/assets/paopao.webp` | 86,780 | `d192b19e243722338b9a2498930c3cd8fc8a2b6fb5b49b62cef6b2886960c242` |
+| `desktop-app/src/components/LibraryWorld.tsx` | 52,322 | `64ee34baff89d2fa71c54a97891a7eb8dbd1d5662c30e7b06cdba775209b39b6` |

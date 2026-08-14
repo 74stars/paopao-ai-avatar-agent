@@ -6,11 +6,13 @@ import type {
   AiProviderProtocolV2,
   AiStructuredOutputModeV2,
   DomainEventV1,
+  ErrorCode,
   FeishuDeliveryIssueV1,
   SaveAiProviderProfileRequestV2,
 } from "@paopao/contracts";
 import { DataManagement } from "./DataManagement";
 import { userErrorMessage } from "../error-messages";
+import { useModalFocus } from "./modal-focus";
 
 type PublicSettings = Extract<Awaited<ReturnType<NonNullable<typeof window.paopao>["settings"]["getPublic"]>>, { ok: true }>["data"];
 type FeishuStatusEvent = Extract<DomainEventV1, { type: "feishu:status" }>;
@@ -26,7 +28,7 @@ interface PendingResolution {
 
 type AiProviderReasoningEffortV2 = "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | "ultra";
 
-interface DirectDraft {
+export interface DirectDraft {
   kind: "direct";
   id: string;
   name: string;
@@ -52,13 +54,78 @@ interface CodexDraft {
 
 type AiDraft = DirectDraft | CodexDraft;
 
+export type DirectProviderPresetId = "openai" | "deepseek" | "openrouter" | "local" | "custom";
+
+type DirectProviderPresetDefaults = Pick<DirectDraft, "name" | "providerId" | "protocol" | "baseUrl" | "authMode" | "authHeaderName" | "structuredOutput" | "timeoutMs">;
+
+export interface DirectProviderPreset {
+  id: DirectProviderPresetId;
+  label: string;
+  modelPlaceholder: string;
+  defaults: DirectProviderPresetDefaults;
+}
+
+export const DIRECT_PROVIDER_PRESETS: readonly DirectProviderPreset[] = [
+  {
+    id: "openai",
+    label: "OpenAI",
+    modelPlaceholder: "例如 gpt-5",
+    defaults: { name: "OpenAI", providerId: "openai", protocol: "openai_responses", baseUrl: "https://api.openai.com/v1", authMode: "bearer", authHeaderName: "", structuredOutput: "json_schema", timeoutMs: "60000" },
+  },
+  {
+    id: "deepseek",
+    label: "DeepSeek",
+    modelPlaceholder: "例如 deepseek-chat",
+    defaults: { name: "DeepSeek", providerId: "deepseek", protocol: "openai_chat_completions", baseUrl: "https://api.deepseek.com/v1", authMode: "bearer", authHeaderName: "", structuredOutput: "prompt_json", timeoutMs: "60000" },
+  },
+  {
+    id: "openrouter",
+    label: "OpenRouter",
+    modelPlaceholder: "例如 openai/gpt-4.1",
+    defaults: { name: "OpenRouter", providerId: "openrouter", protocol: "openai_chat_completions", baseUrl: "https://openrouter.ai/api/v1", authMode: "bearer", authHeaderName: "", structuredOutput: "prompt_json", timeoutMs: "60000" },
+  },
+  {
+    id: "local",
+    label: "本地兼容服务",
+    modelPlaceholder: "例如 qwen2.5:7b",
+    defaults: { name: "本地服务", providerId: "local", protocol: "openai_chat_completions", baseUrl: "http://127.0.0.1:11434/v1", authMode: "none", authHeaderName: "", structuredOutput: "prompt_json", timeoutMs: "60000" },
+  },
+  {
+    id: "custom",
+    label: "自定义服务商",
+    modelPlaceholder: "输入服务商支持的模型 ID",
+    defaults: { name: "自定义服务商", providerId: "", protocol: "openai_responses", baseUrl: "", authMode: "bearer", authHeaderName: "", structuredOutput: "json_schema", timeoutMs: "60000" },
+  },
+];
+
+const DEFAULT_DIRECT_PROVIDER_PRESET_ID: DirectProviderPresetId = "openai";
+
+function directProviderPreset(presetId: DirectProviderPresetId): DirectProviderPreset {
+  return DIRECT_PROVIDER_PRESETS.find((preset) => preset.id === presetId)!;
+}
+
 const AUTH_MODE_TEXT: Record<AiProviderAuthModeV2, string> = {
-  bearer: "Bearer",
-  api_key_header: "API Key Header",
-  none: "无认证",
+  bearer: "Bearer 令牌",
+  api_key_header: "API Key 请求头",
+  none: "无需认证",
 };
 
 const REASONING_EFFORTS: readonly AiProviderReasoningEffortV2[] = ["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"];
+
+export type SettingsResourceStatus = "loading" | "ready" | "error";
+
+type SettingsResourceLoadState = {
+  status: SettingsResourceStatus;
+  error: string | null;
+};
+
+const INITIAL_RESOURCE_LOAD_STATE: SettingsResourceLoadState = { status: "loading", error: null };
+
+export function settingsResourceView(status: SettingsResourceStatus, hasData: boolean): "loading" | "error" | "ready" {
+  if (status === "loading" && !hasData) return "loading";
+  if (status === "error" && !hasData) return "error";
+  return "ready";
+}
 
 export function SettingsPanel({
   onClose,
@@ -69,14 +136,17 @@ export function SettingsPanel({
   onOpenEntry?(entryId: string): void;
   latestFeishuStatus?: FeishuStatusEvent | null;
 }) {
+  const panelRef = useModalFocus<HTMLElement>(onClose);
   const [settings, setSettings] = useState<PublicSettings | null>(null);
+  const [settingsLoadState, setSettingsLoadState] = useState<SettingsResourceLoadState>(INITIAL_RESOURCE_LOAD_STATE);
   const [appId, setAppId] = useState("");
   const [appSecret, setAppSecret] = useState("");
-  const [message, setMessage] = useState("凭据保存后不会显示或读回。");
+  const [message, setMessage] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<"feishu" | null>(null);
   const [bindingCode, setBindingCode] = useState<{ code: string; expiresAt: string } | null>(null);
-  const [issues, setIssues] = useState<FeishuDeliveryIssueV1[]>([]);
+  const [issues, setIssues] = useState<FeishuDeliveryIssueV1[] | null>(null);
+  const [issuesLoadState, setIssuesLoadState] = useState<SettingsResourceLoadState>(INITIAL_RESOURCE_LOAD_STATE);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [issuesLoading, setIssuesLoading] = useState(false);
   const issuesLoadingRef = useRef(false);
@@ -84,7 +154,9 @@ export function SettingsPanel({
   const [statusEvent, setStatusEvent] = useState<FeishuStatusEvent | null>(latestFeishuStatus ?? null);
 
   const [aiProfiles, setAiProfiles] = useState<AiProviderProfilesV2 | null>(null);
+  const [aiProfilesLoadState, setAiProfilesLoadState] = useState<SettingsResourceLoadState>(INITIAL_RESOURCE_LOAD_STATE);
   const [aiTab, setAiTab] = useState<"direct" | "codex">("direct");
+  const [directPresetId, setDirectPresetId] = useState<DirectProviderPresetId>(DEFAULT_DIRECT_PROVIDER_PRESET_ID);
   const [aiDraft, setAiDraft] = useState<AiDraft>(() => blankDirectDraft());
   const [editingProfile, setEditingProfile] = useState<AiProviderProfileV2 | null>(null);
   const [apiKey, setApiKey] = useState("");
@@ -93,24 +165,39 @@ export function SettingsPanel({
   const [confirmingDeleteProfile, setConfirmingDeleteProfile] = useState<string | null>(null);
 
   const loadSettings = useCallback(async () => {
-    if (!window.paopao) return;
-    const result = await window.paopao.settings.getPublic({ version: 1 });
-    if (result.ok) setSettings(result.data);
-    else setMessage(userErrorMessage(result.error, "settings"));
+    const api = window.paopao?.settings;
+    if (!api) {
+      setSettingsLoadState({ status: "error", error: "设置服务暂时不可用，请重新打开设置后再试。" });
+      return;
+    }
+    const result = await api.getPublic({ version: 1 });
+    if (result.ok) {
+      setSettings(result.data);
+      setSettingsLoadState({ status: "ready", error: null });
+    } else {
+      setSettingsLoadState({ status: "error", error: userErrorMessage(result.error, "settings") });
+    }
   }, []);
 
   const loadIssues = useCallback(async (cursor?: string) => {
-    if (!window.paopao || issuesLoadingRef.current) return;
+    const api = window.paopao?.feishu;
+    if (!api) {
+      setIssuesLoadState({ status: "error", error: "投递异常服务暂时不可用，请稍后重试。" });
+      return;
+    }
+    if (issuesLoadingRef.current) return;
     issuesLoadingRef.current = true;
     setIssuesLoading(true);
+    setIssuesLoadState((current) => current.status === "ready" ? current : { status: "loading", error: null });
     try {
-      const result = await window.paopao.feishu.listDeliveryIssues({ version: 1, limit: 50, ...(cursor ? { cursor } : {}) });
+      const result = await api.listDeliveryIssues({ version: 1, limit: 50, ...(cursor ? { cursor } : {}) });
       if (!result.ok) {
-        setMessage(userErrorMessage(result.error, "settings"));
+        setIssuesLoadState({ status: "error", error: userErrorMessage(result.error, "settings") });
         return;
       }
-      setIssues((current) => cursor ? [...current, ...result.data.items] : result.data.items);
+      setIssues((current) => cursor ? [...(current ?? []), ...result.data.items] : result.data.items);
       setNextCursor(result.data.nextCursor);
+      setIssuesLoadState({ status: "ready", error: null });
     } finally {
       issuesLoadingRef.current = false;
       setIssuesLoading(false);
@@ -119,10 +206,17 @@ export function SettingsPanel({
 
   const loadAiProviders = useCallback(async () => {
     const api = window.paopao?.aiProviders;
-    if (!api) return;
+    if (!api) {
+      setAiProfilesLoadState({ status: "error", error: "AI 服务配置暂时不可用，请稍后重试。" });
+      return;
+    }
     const result = await api.list({ version: 2 });
-    if (!result.ok) setMessage(userErrorMessage(result.error, "settings"));
-    else setAiProfiles(result.data);
+    if (result.ok) {
+      setAiProfiles(result.data);
+      setAiProfilesLoadState({ status: "ready", error: null });
+    } else {
+      setAiProfilesLoadState({ status: "error", error: userErrorMessage(result.error, "settings") });
+    }
   }, []);
 
   useEffect(() => {
@@ -131,7 +225,7 @@ export function SettingsPanel({
     void loadAiProviders();
     const refresh = window.setInterval(() => { void loadSettings(); void loadIssues(); void loadAiProviders(); }, 15_000);
     return () => window.clearInterval(refresh);
-  }, [loadAiProviders]); // Queries are intentionally run once when the panel opens.
+  }, [loadAiProviders, loadIssues, loadSettings]);
 
   useEffect(() => window.paopao?.onDomainEvent((event) => {
     if (event.type === "feishu:status") {
@@ -149,14 +243,14 @@ export function SettingsPanel({
     if (!window.paopao || busy || !appId.trim() || !appSecret.trim()) return;
     setBusy("feishu-save");
     setBindingCode(null);
-    setMessage("正在加密保存飞书凭据...");
+    setMessage("正在保存飞书凭据…");
     try {
       const result = await window.paopao.settings.saveFeishuCredential({ version: 1, appId: appId.trim(), appSecret: appSecret.trim() });
       if (!result.ok) setMessage(userErrorMessage(result.error, "settings"));
       else {
         setAppId("");
         setConfirmingDelete(null);
-        setMessage("飞书凭据已保存，可建立长连接。");
+        setMessage("飞书凭据已保存。");
         await loadSettings();
       }
     } finally {
@@ -197,7 +291,7 @@ export function SettingsPanel({
         ? await window.paopao.feishu.connect({ version: 1 })
         : await window.paopao.feishu.disconnect({ version: 1 });
       if (!result.ok) setMessage(userErrorMessage(result.error, "settings"));
-      else setMessage(action === "connect" ? "正在建立飞书长连接。" : "飞书已离线。关闭应用期间不会接收消息。");
+      else setMessage(action === "connect" ? "正在连接飞书…" : "飞书已断开。");
       await loadSettings();
     } finally {
       setBusy(null);
@@ -259,6 +353,7 @@ export function SettingsPanel({
   function switchAiTab(kind: "direct" | "codex") {
     setAiTab(kind);
     setEditingProfile(null);
+    if (kind === "direct") setDirectPresetId(DEFAULT_DIRECT_PROVIDER_PRESET_ID);
     setAiDraft(kind === "direct" ? blankDirectDraft() : blankCodexDraft());
     setApiKey("");
     setCodexDiscovery(null);
@@ -267,6 +362,7 @@ export function SettingsPanel({
 
   function startEdit(profile: AiProviderProfileV2) {
     setEditingProfile(profile);
+    if (profile.kind === "direct") setDirectPresetId(inferDirectProviderPreset(profile));
     setAiDraft(profileToDraft(profile));
     setApiKey("");
     setCodexDiscovery(null);
@@ -275,6 +371,7 @@ export function SettingsPanel({
 
   function startNewDraft() {
     setEditingProfile(null);
+    if (aiTab === "direct") setDirectPresetId(DEFAULT_DIRECT_PROVIDER_PRESET_ID);
     setAiDraft(aiTab === "direct" ? blankDirectDraft() : blankCodexDraft());
     setApiKey("");
     setCodexDiscovery(null);
@@ -283,6 +380,15 @@ export function SettingsPanel({
 
   function updateDirect<K extends keyof DirectDraft>(key: K, value: DirectDraft[K]) {
     setAiDraft((current) => current?.kind === "direct" ? { ...current, [key]: value } : current);
+  }
+
+  function chooseDirectProviderPreset(nextPresetId: DirectProviderPresetId) {
+    if (nextPresetId === directPresetId) return;
+    setAiDraft((current) => current.kind === "direct"
+      ? applyDirectProviderPreset(current, directPresetId, nextPresetId)
+      : current);
+    setDirectPresetId(nextPresetId);
+    setApiKey("");
   }
 
   function updateCodex<K extends keyof CodexDraft>(key: K, value: CodexDraft[K]) {
@@ -296,7 +402,7 @@ export function SettingsPanel({
     if (aiDraft.kind === "direct") {
       const timeoutMs = Number(aiDraft.timeoutMs);
       if (!aiDraft.name.trim() || !aiDraft.providerId.trim() || !aiDraft.baseUrl.trim() || !aiDraft.model.trim() || !Number.isInteger(timeoutMs) || timeoutMs < 1_000 || timeoutMs > 300_000) {
-        setMessage("请补全 Direct 字段，超时需在 1000–300000 毫秒之间。");
+        setMessage("请填写完整的 AI 服务配置；超时时间须为 1,000 至 300,000 毫秒。");
         return;
       }
     } else if (!aiDraft.name.trim()) {
@@ -304,7 +410,7 @@ export function SettingsPanel({
       return;
     }
     setBusy("ai-save");
-    setMessage(aiDraft.kind === "direct" ? "正在保存 Provider 配置..." : "正在保存 Codex 配置...");
+    setMessage(aiDraft.kind === "direct" ? "正在保存 AI 服务配置…" : "正在保存 Codex 配置…");
     try {
       const request = aiDraft.kind === "direct"
         ? buildSaveAiProviderRequest({ ...aiDraft, timeoutMs: Number(aiDraft.timeoutMs), credential: apiKey })
@@ -319,8 +425,8 @@ export function SettingsPanel({
       setConfirmingDeleteProfile(null);
       setMessage(result.data.profile.kind === "direct"
         ? result.data.profile.credentialConfigured
-          ? "Provider 配置已保存，API Key 保存后立即清空，不会回显。"
-          : "Provider 配置已保存，但当前缺少凭据；地址或认证方式变化后需重新输入 API Key。"
+          ? "AI 服务配置已保存。"
+          : "AI 服务配置已保存，但当前缺少访问凭据。"
         : "Codex 配置已保存。");
       await loadAiProviders();
     } finally {
@@ -333,7 +439,7 @@ export function SettingsPanel({
     const api = window.paopao?.aiProviders;
     if (!api || busy) return;
     setBusy(`ai-probe-${profile.id}`);
-    setMessage(`正在测试“${profile.name}”，这可能产生真实 Provider 调用...`);
+    setMessage(`正在测试“${profile.name}”的连接…`);
     try {
       const result = await api.probe({ version: 2, profileId: profile.id });
       if (!result.ok) {
@@ -341,7 +447,7 @@ export function SettingsPanel({
         return;
       }
       setProbeResults((current) => ({ ...current, [profile.id]: result.data }));
-      setMessage(`连接测试完成：${probeStatusLabel(result.data.status)}。测试可能已产生真实调用。`);
+      setMessage(`连接测试完成：${probeStatusLabel(result.data.status)}。`);
     } finally {
       setBusy(null);
     }
@@ -356,7 +462,7 @@ export function SettingsPanel({
       if (!result.ok) setMessage(userErrorMessage(result.error, "settings"));
       else {
         setAiProfiles(result.data);
-        setMessage(`已激活“${profile.name}”，后续 AI 任务将使用该配置。`);
+        setMessage(`已切换至“${profile.name}”。`);
       }
     } finally {
       setBusy(null);
@@ -396,7 +502,7 @@ export function SettingsPanel({
     if (!api || busy || !aiDraft || aiDraft.kind !== "codex") return;
     setBusy("ai-discover");
     setCodexDiscovery(null);
-    setMessage("正在发现本机 Codex 环境（只运行本地命令，不会调用远端 Provider）...");
+    setMessage("正在检查本机 Codex…");
     try {
       const result = await api.discoverCodex({
         version: 2,
@@ -414,43 +520,72 @@ export function SettingsPanel({
     }
   }
 
+  const settingsView = settingsResourceView(settingsLoadState.status, settings !== null);
+  const aiProfilesView = settingsResourceView(aiProfilesLoadState.status, aiProfiles !== null);
+  const issuesView = settingsResourceView(issuesLoadState.status, issues !== null);
+  const issueItems = issues ?? [];
   const connectionStatus = settings && !settings.feishu.configured
     ? "not_configured"
     : statusEvent?.status ?? settings?.feishu.status ?? "not_configured";
   const connectionError = connectionStatus === "error" && statusEvent?.status === "error" ? statusEvent.errorCode : undefined;
   const activeProfile = aiProfiles?.profiles.find((profile) => profile.id === aiProfiles.activeProfileId) ?? null;
   const visibleProfiles = (aiProfiles?.profiles ?? []).filter((profile) => profile.kind === aiTab);
+  const selectedDirectPreset = directProviderPreset(directPresetId);
+  const directTechnicalFields = aiDraft.kind === "direct" ? (
+    <>
+      <label>服务标识<input data-testid="ai-provider-provider-id" autoComplete="off" maxLength={100} value={aiDraft.providerId} disabled={Boolean(busy)} onChange={(event) => updateDirect("providerId", event.target.value)} placeholder="例如 openai" /></label>
+      <label>协议<select data-testid="ai-provider-protocol" value={aiDraft.protocol} disabled={Boolean(busy)} onChange={(event) => updateDirect("protocol", event.target.value as AiProviderProtocolV2)}>
+        <option value="openai_responses">OpenAI Responses</option>
+        <option value="openai_chat_completions">OpenAI Chat Completions</option>
+      </select></label>
+      <label>服务地址<input data-testid="ai-provider-base-url" autoComplete="off" maxLength={1000} value={aiDraft.baseUrl} disabled={Boolean(busy)} onChange={(event) => updateDirect("baseUrl", event.target.value)} placeholder="https://api.example.com/v1" /></label>
+      <label>认证模式<select data-testid="ai-provider-auth-mode" value={aiDraft.authMode} disabled={Boolean(busy)} onChange={(event) => updateDirect("authMode", event.target.value as AiProviderAuthModeV2)}>
+        <option value="bearer">Bearer 令牌</option>
+        <option value="api_key_header">API Key 请求头</option>
+        <option value="none">无需认证</option>
+      </select></label>
+      {aiDraft.authMode === "api_key_header" && <label>认证请求头<input data-testid="ai-provider-auth-header" autoComplete="off" maxLength={100} value={aiDraft.authHeaderName} disabled={Boolean(busy)} onChange={(event) => updateDirect("authHeaderName", event.target.value)} placeholder="例如 x-api-key" /></label>}
+      <label>结构化输出<select data-testid="ai-provider-structured-output" value={aiDraft.structuredOutput} disabled={Boolean(busy)} onChange={(event) => updateDirect("structuredOutput", event.target.value as AiStructuredOutputModeV2)}>
+        <option value="json_schema">严格结构化输出</option>
+        <option value="json_object">JSON 对象</option>
+        <option value="prompt_json">提示词约束</option>
+      </select></label>
+      <label>超时时间（毫秒）<input type="number" data-testid="ai-provider-timeout" min={1000} max={300000} step={1000} value={aiDraft.timeoutMs} disabled={Boolean(busy)} onChange={(event) => updateDirect("timeoutMs", event.target.value)} /></label>
+    </>
+  ) : null;
 
   return (
     <div className="settings-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <aside className="settings-panel" aria-label="设置" data-testid="settings-panel">
+      <aside className="settings-panel" role="dialog" aria-modal="true" aria-label="设置" tabIndex={-1} ref={panelRef} data-testid="settings-panel">
         <header className="settings-header">
           <strong>设置</strong>
-          <button className="icon-command" type="button" aria-label="关闭设置" title="关闭" onClick={onClose}>x</button>
+          <button className="icon-command" type="button" aria-label="关闭设置" title="关闭" onClick={onClose}>×</button>
         </header>
 
         <section className="settings-section ai-providers-settings" data-testid="ai-providers-settings">
           <div className="settings-section-heading">
-            <h2>AI Provider</h2>
-            <span data-testid="ai-providers-count">{aiProfiles === null ? "读取中" : `${aiProfiles.profiles.length} 个配置`}</span>
+            <h2>AI 服务</h2>
+            <span data-testid="ai-providers-count">{aiProfilesView === "loading" ? "读取中…" : aiProfilesView === "error" ? "读取失败" : `${aiProfiles?.profiles.length ?? 0} 项配置`}</span>
           </div>
 
+          <SettingsResourceNotice state={aiProfilesLoadState} hasData={aiProfiles !== null} loadingLabel="正在读取 AI 服务配置…" onRetry={() => void loadAiProviders()} testId="ai-providers-resource-state" />
+          {aiProfilesView === "ready" && <>
           <p className="settings-status" data-testid="ai-provider-active-status">
-            {aiProfiles === null ? "读取中..." : activeProfile ? `当前激活：${aiProviderSummaryLabel(activeProfile)}（${activeProfile.kind === "codex" ? "复用 Codex" : "通用 Provider"}）` : "未激活任何 Provider"}
+            {aiProfiles === null ? "读取中…" : activeProfile ? `当前使用：${activeProfile.name} · ${aiProviderSummaryLabel(activeProfile)}` : "尚未选择 AI 服务"}
           </p>
 
           <div className="settings-control-row">
-            <span>配置类型</span>
-            <div className="segmented-control" role="group" aria-label="AI Provider 类型">
-              <button type="button" className={aiTab === "direct" ? "active" : ""} disabled={Boolean(busy)} onClick={() => switchAiTab("direct")} data-testid="ai-provider-tab-direct">通用 Provider</button>
-              <button type="button" className={aiTab === "codex" ? "active" : ""} disabled={Boolean(busy)} onClick={() => switchAiTab("codex")} data-testid="ai-provider-tab-codex">复用 Codex</button>
+            <span>接入方式</span>
+            <div className="segmented-control" role="group" aria-label="AI 服务接入方式">
+              <button type="button" className={aiTab === "direct" ? "active" : ""} disabled={Boolean(busy)} onClick={() => switchAiTab("direct")} data-testid="ai-provider-tab-direct">模型服务</button>
+              <button type="button" className={aiTab === "codex" ? "active" : ""} disabled={Boolean(busy)} onClick={() => switchAiTab("codex")} data-testid="ai-provider-tab-codex">本机 Codex</button>
             </div>
           </div>
 
-          <p className="settings-note">连接测试会向已保存的 Provider 发起真实请求，可能产生调用费用；Codex 发现只运行本机命令。</p>
+          {aiTab === "direct" && <p className="settings-note">测试模型服务连接时可能产生调用费用。</p>}
 
           <div className="ai-provider-list" data-testid="ai-provider-list">
-            {visibleProfiles.length === 0 && <p className="settings-note">还没有{aiTab === "direct" ? "通用 Provider" : "Codex"}配置，可在下方新建。</p>}
+            {visibleProfiles.length === 0 && <p className="settings-note">还没有{aiTab === "direct" ? "模型服务" : "Codex"}配置。</p>}
             {visibleProfiles.map((profile) => {
               const isActive = profile.id === aiProfiles?.activeProfileId;
               const probeResult = probeResults[profile.id];
@@ -461,20 +596,20 @@ export function SettingsPanel({
                     <strong>{profile.name}</strong>
                     <span className={`ai-provider-badge ${isActive && profile.credentialConfigured ? "active" : profile.credentialConfigured ? "configured" : "missing"}`} data-testid={`ai-provider-state-${profile.id}`}>
                       {isActive
-                        ? profile.credentialConfigured ? "当前激活 · 可用" : "当前激活 · 缺少凭据"
+                        ? profile.credentialConfigured ? "当前使用 · 可用" : "当前使用 · 缺少凭据"
                         : profile.credentialConfigured ? "凭据已配置" : "缺少凭据"}
                     </span>
                   </div>
                   <p className="ai-provider-row-summary">{aiProviderSummaryLabel(profile)}{profile.kind === "direct" ? ` · ${AUTH_MODE_TEXT[profile.authMode]}` : ""}</p>
                   <div className="ai-provider-row-actions">
                     <button type="button" disabled={Boolean(busy)} onClick={() => startEdit(profile)}>编辑</button>
-                    <button type="button" title="可能产生真实 Provider 调用" disabled={Boolean(busy)} onClick={() => void runProbe(profile)} data-testid={`ai-provider-test-${profile.id}`}>测试连接</button>
-                    {!isActive && <button type="button" disabled={Boolean(busy)} onClick={() => void activateProfile(profile)} data-testid={`ai-provider-activate-${profile.id}`}>激活</button>}
+                    <button type="button" title="测试可能产生调用费用" disabled={Boolean(busy)} onClick={() => void runProbe(profile)} data-testid={`ai-provider-test-${profile.id}`}>测试连接</button>
+                    {!isActive && <button type="button" disabled={Boolean(busy)} onClick={() => void activateProfile(profile)} data-testid={`ai-provider-activate-${profile.id}`}>使用</button>}
                     <button type="button" className={confirming ? "danger" : ""} disabled={Boolean(busy)} onClick={() => void deleteProfile(profile)} data-testid={`ai-provider-delete-${profile.id}`}>{confirming ? "确认删除" : "删除"}</button>
                   </div>
                   {probeResult && (
                     <p className={`probe-result ${probeResult.status === "ready" ? "ready" : probeResult.status === "not_configured" ? "warning" : "error"}`} data-testid={`ai-provider-probe-${profile.id}`}>
-                      {probeStatusLabel(probeResult.status)}{probeResult.latencyMs !== null ? ` · ${probeResult.latencyMs}ms` : ""}{probeResult.status === "ready" && probeResult.model ? ` · ${probeResult.model}` : ""}
+                      {probeStatusLabel(probeResult.status)}{probeResult.latencyMs !== null ? ` · ${probeResult.latencyMs} 毫秒` : ""}{probeResult.status === "ready" && probeResult.model ? ` · ${probeResult.model}` : ""}
                     </p>
                   )}
                 </article>
@@ -490,38 +625,30 @@ export function SettingsPanel({
               <form className="settings-form" onSubmit={(event) => void saveAiProfile(event)}>
                 {aiDraft.kind === "direct" ? (
                   <>
-                    <label>名称<input data-testid="ai-provider-name" autoComplete="off" maxLength={80} value={aiDraft.name} disabled={Boolean(busy)} onChange={(event) => updateDirect("name", event.target.value)} /></label>
-                    <label>Provider ID<input data-testid="ai-provider-provider-id" autoComplete="off" maxLength={100} value={aiDraft.providerId} disabled={Boolean(busy)} onChange={(event) => updateDirect("providerId", event.target.value)} placeholder="例如 openai" /></label>
-                    <label>协议<select data-testid="ai-provider-protocol" value={aiDraft.protocol} disabled={Boolean(busy)} onChange={(event) => updateDirect("protocol", event.target.value as AiProviderProtocolV2)}>
-                      <option value="openai_responses">OpenAI Responses</option>
-                      <option value="openai_chat_completions">OpenAI Chat Completions</option>
+                    <label>服务商<select data-testid="ai-provider-preset" value={directPresetId} disabled={Boolean(busy)} onChange={(event) => chooseDirectProviderPreset(event.target.value as DirectProviderPresetId)}>
+                      {DIRECT_PROVIDER_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.label}</option>)}
                     </select></label>
-                    <label>Base URL<input data-testid="ai-provider-base-url" autoComplete="off" maxLength={1000} value={aiDraft.baseUrl} disabled={Boolean(busy)} onChange={(event) => updateDirect("baseUrl", event.target.value)} placeholder="https://api.example.com/v1" /></label>
-                    <label>模型<input data-testid="ai-provider-model" autoComplete="off" maxLength={200} value={aiDraft.model} disabled={Boolean(busy)} onChange={(event) => updateDirect("model", event.target.value)} /></label>
-                    <label>认证模式<select data-testid="ai-provider-auth-mode" value={aiDraft.authMode} disabled={Boolean(busy)} onChange={(event) => updateDirect("authMode", event.target.value as AiProviderAuthModeV2)}>
-                      <option value="bearer">Bearer Token</option>
-                      <option value="api_key_header">API Key Header</option>
-                      <option value="none">无认证</option>
-                    </select></label>
-                    {aiDraft.authMode === "api_key_header" && <label>认证 Header<input data-testid="ai-provider-auth-header" autoComplete="off" maxLength={100} value={aiDraft.authHeaderName} disabled={Boolean(busy)} onChange={(event) => updateDirect("authHeaderName", event.target.value)} placeholder="例如 x-api-key" /></label>}
-                    {aiDraft.authMode !== "none" && <label>API Key（保存后立即清空，不回显）<input type="password" data-testid="ai-provider-api-key" autoComplete="off" maxLength={4096} value={apiKey} disabled={Boolean(busy)} onChange={(event) => setApiKey(event.target.value)} placeholder="留空表示保留已保存凭据" /></label>}
-                    <label>结构化输出<select data-testid="ai-provider-structured-output" value={aiDraft.structuredOutput} disabled={Boolean(busy)} onChange={(event) => updateDirect("structuredOutput", event.target.value as AiStructuredOutputModeV2)}>
-                      <option value="json_schema">JSON Schema</option>
-                      <option value="json_object">JSON Object</option>
-                      <option value="prompt_json">Prompt JSON</option>
-                    </select></label>
-                    <label>超时（毫秒）<input type="number" data-testid="ai-provider-timeout" min={1000} max={300000} step={1000} value={aiDraft.timeoutMs} disabled={Boolean(busy)} onChange={(event) => updateDirect("timeoutMs", event.target.value)} /></label>
+                    <label>配置名称<input data-testid="ai-provider-name" autoComplete="off" maxLength={80} value={aiDraft.name} disabled={Boolean(busy)} onChange={(event) => updateDirect("name", event.target.value)} /></label>
+                    {directPresetId === "custom" && <div className="ai-provider-technical-fields" data-testid="ai-provider-custom-fields">{directTechnicalFields}</div>}
+                    <label>模型<input data-testid="ai-provider-model" autoComplete="off" maxLength={200} value={aiDraft.model} disabled={Boolean(busy)} onChange={(event) => updateDirect("model", event.target.value)} placeholder={selectedDirectPreset.modelPlaceholder} /></label>
+                    {aiDraft.authMode !== "none" && <label>API Key<input type="password" data-testid="ai-provider-api-key" autoComplete="off" maxLength={4096} value={apiKey} disabled={Boolean(busy)} onChange={(event) => setApiKey(event.target.value)} placeholder="留空表示保留已保存凭据" /></label>}
+                    {directProviderPresetUsesCompactForm(directPresetId) && (
+                      <details className="ai-provider-advanced" data-testid="ai-provider-advanced">
+                        <summary>高级设置</summary>
+                        <div className="ai-provider-technical-fields">{directTechnicalFields}</div>
+                      </details>
+                    )}
                   </>
                 ) : (
                   <>
                     <label>名称<input data-testid="ai-provider-name" autoComplete="off" maxLength={80} value={aiDraft.name} disabled={Boolean(busy)} onChange={(event) => updateCodex("name", event.target.value)} /></label>
-                    <label>Profile<input data-testid="ai-provider-codex-profile" autoComplete="off" maxLength={100} value={aiDraft.profile} disabled={Boolean(busy)} onChange={(event) => updateCodex("profile", event.target.value)} placeholder="可选，例如 default" /></label>
+                    <label>Codex 配置档案<input data-testid="ai-provider-codex-profile" autoComplete="off" maxLength={100} value={aiDraft.profile} disabled={Boolean(busy)} onChange={(event) => updateCodex("profile", event.target.value)} placeholder="可选，例如 default" /></label>
                     <label>模型<input data-testid="ai-provider-codex-model" autoComplete="off" maxLength={200} value={aiDraft.model} disabled={Boolean(busy)} onChange={(event) => updateCodex("model", event.target.value)} placeholder="可选，留空使用 Codex 默认" /></label>
-                    <label>Reasoning Effort<select data-testid="ai-provider-codex-reasoning" value={aiDraft.reasoningEffort} disabled={Boolean(busy)} onChange={(event) => updateCodex("reasoningEffort", event.target.value as AiProviderReasoningEffortV2 | "")}>
+                    <label>推理强度<select data-testid="ai-provider-codex-reasoning" value={aiDraft.reasoningEffort} disabled={Boolean(busy)} onChange={(event) => updateCodex("reasoningEffort", event.target.value as AiProviderReasoningEffortV2 | "")}>
                       <option value="">默认</option>
-                      {REASONING_EFFORTS.map((effort) => <option key={effort} value={effort}>{effort}</option>)}
+                      {REASONING_EFFORTS.map((effort) => <option key={effort} value={effort}>{reasoningEffortLabel(effort)}</option>)}
                     </select></label>
-                    <label>Codex Home<input data-testid="ai-provider-codex-home" autoComplete="off" maxLength={1000} value={aiDraft.codexHome} disabled={Boolean(busy)} onChange={(event) => updateCodex("codexHome", event.target.value)} placeholder="可选，例如 ~/.codex" /></label>
+                    <label>Codex 配置目录<input data-testid="ai-provider-codex-home" autoComplete="off" maxLength={1000} value={aiDraft.codexHome} disabled={Boolean(busy)} onChange={(event) => updateCodex("codexHome", event.target.value)} placeholder="可选，例如 ~/.codex" /></label>
                   </>
                 )}
                 <div className="settings-actions">
@@ -532,15 +659,13 @@ export function SettingsPanel({
               {aiDraft.kind === "codex" && (
                 <>
                   <div className="settings-actions ai-provider-discover-actions">
-                    <button type="button" disabled={Boolean(busy)} onClick={() => void runDiscoverCodex()} data-testid="ai-provider-discover">发现本机 Codex</button>
+                    <button type="button" disabled={Boolean(busy)} onClick={() => void runDiscoverCodex()} data-testid="ai-provider-discover">检查本机 Codex</button>
                   </div>
                   {codexDiscovery && (
                     <div className={`codex-discovery ${codexDiscovery.errorCode ? (codexDiscovery.errorCode === "CODEX_NOT_INSTALLED" ? "error" : "warning") : ""}`} data-testid="codex-discovery">
                       <dl>
-                        <div><dt>已安装</dt><dd>{codexDiscovery.installed ? "是" : "否"}</dd></div>
-                        <div><dt>已认证</dt><dd>{codexDiscovery.authenticated ? "是" : "否"}</dd></div>
-                        <div><dt>CLI 版本</dt><dd>{codexDiscovery.cliVersion ?? "未知"}</dd></div>
-                        <div><dt>认证方式</dt><dd>{codexDiscovery.authMode ?? "未知"}</dd></div>
+                        <div><dt>安装状态</dt><dd>{codexDiscovery.installed ? "已安装" : "未安装"}</dd></div>
+                        <div><dt>登录状态</dt><dd>{codexDiscovery.authenticated ? "已登录" : "未登录"}</dd></div>
                       </dl>
                       {codexDiscovery.errorCode && <p className="settings-note" data-testid="codex-discovery-error">{codexDiscoveryErrorLabel(codexDiscovery.errorCode)}</p>}
                       {codexDiscovery.models.length > 0 && (
@@ -548,7 +673,6 @@ export function SettingsPanel({
                           {codexDiscovery.models.slice(0, 12).map((model) => (
                             <li key={model.id}>
                               <span>{model.displayName ?? model.id}{model.isDefault ? "（默认）" : ""}</span>
-                              <small>{model.defaultReasoningEffort ?? ""}</small>
                             </li>
                           ))}
                         </ul>
@@ -560,13 +684,18 @@ export function SettingsPanel({
               )}
             </div>
           )}
+          </>}
         </section>
 
         <section className="settings-section feishu-settings" data-testid="feishu-settings">
           <div className="settings-section-heading">
-            <h2>飞书连接 · 实验性增量</h2>
-            <span className={`connection-state ${connectionStatus}`} data-testid="feishu-connection-status">{connectionLabel(connectionStatus, connectionError)}</span>
+            <h2>飞书连接</h2>
+            {settingsView === "ready"
+              ? <span className={`connection-state ${connectionStatus}`} data-testid="feishu-connection-status">{connectionLabel(connectionStatus, connectionError)}</span>
+              : <span className={`connection-state ${settingsView}`} data-testid="feishu-connection-status">{settingsView === "loading" ? "读取中" : "读取失败"}</span>}
           </div>
+          <SettingsResourceNotice state={settingsLoadState} hasData={settings !== null} loadingLabel="正在读取飞书设置…" onRetry={() => void loadSettings()} testId="public-settings-resource-state" />
+          {settingsView === "ready" && settings && <>
           <p className="settings-status" data-testid="feishu-config-status">
             {settings?.feishu.configured ? `已配置：${settings.feishu.appIdMasked}` : "未配置飞书应用"}
           </p>
@@ -594,19 +723,22 @@ export function SettingsPanel({
           <div className="binding-row">
             <button type="button" disabled={Boolean(busy) || connectionStatus !== "connected"} onClick={() => void createBindingCode()} data-testid="feishu-create-binding-code">生成绑定码</button>
             {bindingCode && <div className="binding-code" data-testid="feishu-binding-code"><strong>{bindingCode.code}</strong><span>{formatExpiry(bindingCode.expiresAt)} 失效</span></div>}
-            {!bindingCode && <span className={`binding-state ${settings?.feishu.bound ? "bound" : ""}`} data-testid="feishu-binding-status">{settings?.feishu.bound ? "已绑定" : "未绑定"}</span>}
+            {!bindingCode && <span className={`binding-state ${settings.feishu.bound ? "bound" : ""}`} data-testid="feishu-binding-status">{settings.feishu.bound ? "已绑定" : "未绑定"}</span>}
           </div>
+          </>}
         </section>
 
         <section className="settings-section delivery-issues" data-testid="feishu-delivery-issues">
-          <div className="settings-section-heading"><h2>投递异常</h2><span>{settings?.feishu.deliveryIssueCount ?? issues.length}</span></div>
-          {issues.length === 0 && <p className="settings-note">当前没有需要人工处理的投递。</p>}
-          {issues.map((issue) => {
+          <div className="settings-section-heading"><h2>投递异常</h2><span>{issuesView === "loading" ? "读取中…" : issuesView === "error" ? "读取失败" : settings?.feishu.deliveryIssueCount ?? issueItems.length}</span></div>
+          <SettingsResourceNotice state={issuesLoadState} hasData={issues !== null} loadingLabel="正在读取投递异常…" onRetry={() => void loadIssues()} testId="delivery-issues-resource-state" />
+          {issuesView === "ready" && <>
+          {issueItems.length === 0 && <p className="settings-note">当前没有需要人工处理的投递。</p>}
+          {issueItems.map((issue) => {
             const key = issueKey(issue);
             const pending = pendingResolution?.issueKey === key ? pendingResolution : null;
             return <article className="delivery-issue" key={key} data-testid={`delivery-issue-${issue.phase}`}>
               <div className="delivery-issue-heading"><strong>{issue.phase === "ack" ? "保存确认" : "洞察结果"}</strong><span>{issue.status === "ambiguous" ? "发送结果未知" : "最终失败"}</span></div>
-              <dl><div><dt>错误</dt><dd>{issue.errorCode}</dd></div><div><dt>尝试</dt><dd>{issue.attempts}</dd></div><div><dt>时间</dt><dd>{formatTime(issue.updatedAt)}</dd></div></dl>
+              <dl><div><dt>原因</dt><dd>{deliveryIssueErrorLabel(issue.errorCode)}</dd></div><div><dt>时间</dt><dd>{formatTime(issue.updatedAt)}</dd></div></dl>
               {issue.entryId && onOpenEntry && <button className="entry-link" type="button" onClick={() => onOpenEntry(issue.entryId!)}>查看对应记录</button>}
               {pending && <p className={`resolution-warning ${pending.action}`} role="alert">{pending.action === "retry_once" ? "再次发送可能产生重复回复。确认后只重试一次。" : "确认将此投递视为已发送，不会再次自动发送。"}</p>}
               <div className="issue-actions">
@@ -616,13 +748,40 @@ export function SettingsPanel({
               </div>
             </article>;
           })}
-          {nextCursor && <button className="load-more" type="button" disabled={issuesLoading} onClick={() => void loadIssues(nextCursor)}>{issuesLoading ? "读取中..." : "加载更多"}</button>}
+          {nextCursor && <button className="load-more" type="button" disabled={issuesLoading} onClick={() => void loadIssues(nextCursor)}>{issuesLoading ? "读取中…" : "加载更多"}</button>}
+          </>}
         </section>
 
-        <p className="settings-note">safeStorage 只保护凭据；SQLite 中的原文未做整库加密。</p>
+        <p className="settings-note">账号凭据会加密保存；记录内容目前不会加密存储。</p>
         <footer role="status" className="settings-message" data-testid="settings-message">{message}</footer>
         <DataManagement />
       </aside>
+    </div>
+  );
+}
+
+function SettingsResourceNotice({
+  state,
+  hasData,
+  loadingLabel,
+  onRetry,
+  testId,
+}: {
+  state: SettingsResourceLoadState;
+  hasData: boolean;
+  loadingLabel: string;
+  onRetry(): void;
+  testId: string;
+}) {
+  const view = settingsResourceView(state.status, hasData);
+  if (view === "loading") {
+    return <div className="settings-resource-state loading" role="status" data-testid={testId}><p>{loadingLabel}</p></div>;
+  }
+  if (!state.error) return null;
+  return (
+    <div className="settings-resource-state error" role="alert" data-testid={testId}>
+      <p>{state.error}</p>
+      <button type="button" onClick={onRetry}>重试</button>
     </div>
   );
 }
@@ -631,20 +790,53 @@ function issueKey(issue: FeishuDeliveryIssueV1) {
   return `${issue.messageKey}:${issue.phase}`;
 }
 
-function blankDirectDraft(): DirectDraft {
+export function createDirectProviderDraft(
+  presetId: DirectProviderPresetId,
+  id: string = globalThis.crypto.randomUUID(),
+): DirectDraft {
+  const preset = directProviderPreset(presetId);
   return {
     kind: "direct",
-    id: globalThis.crypto.randomUUID(),
-    name: "",
-    providerId: "",
-    protocol: "openai_responses",
-    baseUrl: "",
+    id,
+    ...preset.defaults,
     model: "",
-    authMode: "bearer",
-    authHeaderName: "",
-    structuredOutput: "json_schema",
-    timeoutMs: "60000",
   };
+}
+
+export function applyDirectProviderPreset(
+  draft: DirectDraft,
+  previousPresetId: DirectProviderPresetId,
+  nextPresetId: DirectProviderPresetId,
+): DirectDraft {
+  if (previousPresetId === nextPresetId) return draft;
+  const previousPreset = directProviderPreset(previousPresetId);
+  const nextDraft = createDirectProviderDraft(nextPresetId, draft.id);
+  const shouldReplaceName = !draft.name.trim() || draft.name.trim() === previousPreset.defaults.name;
+  return { ...nextDraft, name: shouldReplaceName ? nextDraft.name : draft.name, model: draft.model };
+}
+
+export function inferDirectProviderPreset(
+  profile: Extract<AiProviderProfileV2, { kind: "direct" }>,
+): DirectProviderPresetId {
+  const providerId = profile.providerId.trim().toLowerCase();
+  const baseUrl = profile.baseUrl.trim().replace(/\/+$/, "");
+  const match = DIRECT_PROVIDER_PRESETS.find((preset) => preset.id !== "custom"
+    && preset.defaults.providerId.toLowerCase() === providerId
+    && preset.defaults.baseUrl.replace(/\/+$/, "") === baseUrl
+    && preset.defaults.protocol === profile.protocol
+    && preset.defaults.authMode === profile.authMode
+    && preset.defaults.authHeaderName === (profile.authHeaderName ?? "")
+    && preset.defaults.structuredOutput === profile.structuredOutput
+    && preset.defaults.timeoutMs === String(profile.timeoutMs));
+  return match?.id ?? "custom";
+}
+
+export function directProviderPresetUsesCompactForm(presetId: DirectProviderPresetId): boolean {
+  return presetId !== "custom";
+}
+
+function blankDirectDraft(): DirectDraft {
+  return createDirectProviderDraft(DEFAULT_DIRECT_PROVIDER_PRESET_ID);
 }
 
 function blankCodexDraft(): CodexDraft {
@@ -687,9 +879,9 @@ function profileToDraft(profile: AiProviderProfileV2): AiDraft {
 }
 
 function codexDiscoveryErrorLabel(errorCode: NonNullable<CodexDiscoveryV2["errorCode"]>): string {
-  if (errorCode === "CODEX_NOT_INSTALLED") return "未检测到 Codex CLI，请先安装并确保其位于 PATH。";
-  if (errorCode === "CODEX_NOT_AUTHENTICATED") return "Codex 已安装但尚未登录，请先完成登录。";
-  return "Codex 环境发现失败，请检查路径后重试。";
+  if (errorCode === "CODEX_NOT_INSTALLED") return "未检测到 Codex，请先完成安装。";
+  if (errorCode === "CODEX_NOT_AUTHENTICATED") return "Codex 尚未登录，请先完成登录。";
+  return "无法检查 Codex，请核对配置目录后重试。";
 }
 
 export type DirectAiProviderDraftInput = {
@@ -753,12 +945,16 @@ function optionalDraftText(value: string | undefined): string | null {
 }
 
 export function aiProviderSummaryLabel(profile: AiProviderProfileV2): string {
-  if (profile.kind === "codex") return profile.model ? `Codex · ${profile.model}` : "Codex · 默认模型";
-  return `${profile.providerId} / ${profile.model}`;
+  if (profile.kind === "codex") return profile.model ?? "默认模型";
+  return profile.model;
+}
+
+export function reasoningEffortLabel(effort: AiProviderReasoningEffortV2): string {
+  return ({ none: "关闭", minimal: "最低", low: "较低", medium: "中等", high: "较高", xhigh: "很高", max: "最高", ultra: "极高" } as const)[effort];
 }
 
 export function probeStatusLabel(status: AiProviderProbeStatusV2): string {
-  return ({ ready: "连接正常", not_configured: "未配置凭据", unavailable: "服务不可用", auth_failed: "认证失败", model_unavailable: "模型不可用", invalid_output: "返回格式异常", timeout: "连接超时" } as const)[status];
+  return ({ ready: "连接正常", not_configured: "未配置凭据", unavailable: "服务不可用", auth_failed: "认证失败", model_unavailable: "模型不可用", invalid_output: "返回内容异常", timeout: "连接超时" } as const)[status];
 }
 
 export function buildDeliveryResolutionRequest(action: PendingResolution["action"], requestId: string, issue: Pick<FeishuDeliveryIssueV1, "messageKey" | "phase">) {
@@ -766,6 +962,10 @@ export function buildDeliveryResolutionRequest(action: PendingResolution["action
   return action === "assume_sent"
     ? { ...base, action: "assume_sent" as const, confirmation: "ASSUME_SENT" as const }
     : { ...base, action: "retry_once" as const, confirmation: "RETRY_MAY_DUPLICATE" as const };
+}
+
+export function deliveryIssueErrorLabel(errorCode: ErrorCode): string {
+  return userErrorMessage({ code: errorCode }, "settings");
 }
 
 export function connectionLabel(status: PublicSettings["feishu"]["status"], errorCode?: string) {

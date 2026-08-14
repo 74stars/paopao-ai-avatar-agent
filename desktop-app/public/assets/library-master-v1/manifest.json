@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "version": "library-master-v1-p6",
+  "canvas": {
+    "width": 1800,
+    "height": 1126
+  },
+  "assetPolicy": "full-scene-state-frames",
+  "states": {
+    "day": {
+      "idle": "day-idle.png",
+      "letterbox": "day-correspondence-letter-lift.png",
+      "books": {
+        "diary": "day-books-diary-pull.png",
+        "thought": "day-books-memory-pull.png",
+        "person": "day-books-third-group-pull.png",
+        "reading": "day-books-third-group-pull.png",
+        "goal": "day-books-fourth-group-pull.png",
+        "other": "day-books-fourth-group-pull.png"
+      }
+    },
+    "night": {
+      "idle": "night-idle.png",
+      "letterbox": "night-correspondence-letter-lift.png",
+      "books": {
+        "diary": "night-books-diary-pull.png",
+        "thought": "night-books-memory-pull.png",
+        "person": "night-books-third-group-pull.png",
+        "reading": "night-books-third-group-pull.png",
+        "goal": "night-books-fourth-group-pull.png",
+        "other": "night-books-fourth-group-pull.png"
+      }
+    }
+  },
+  "hitAreas": {
+    "typewriter": { "x": 656, "y": 410, "width": 400, "height": 280 },
+    "letterbox": { "x": 1152, "y": 490, "width": 368, "height": 225 },
+    "theme-lamp": { "x": 260, "y": 495, "width": 150, "height": 190 },
+    "shelves": {
+      "diary": { "x": 600, "y": 25, "width": 170, "height": 365 },
+      "thought": { "x": 755, "y": 10, "width": 180, "height": 380 },
+      "person": { "x": 900, "y": 10, "width": 150, "height": 380 },
+      "reading": { "x": 1040, "y": 10, "width": 150, "height": 380 },
+      "goal": { "x": 1170, "y": 10, "width": 150, "height": 380 },
+      "other": { "x": 1290, "y": 10, "width": 120, "height": 380 }
+    }
+  },
+  "entryLabels": {
+    "shelves": {
+      "diary": { "x": 713, "y": 375, "content": "category-and-count" },
+      "thought": { "x": 840, "y": 375, "content": "category-and-count" },
+      "person": { "x": 967, "y": 375, "content": "category-and-count" },
+      "reading": { "x": 1093, "y": 375, "content": "category-and-count" },
+      "goal": { "x": 1220, "y": 375, "content": "category-and-count" },
+      "other": { "x": 1347, "y": 375, "content": "category-and-count" }
+    }
+  },
+  "notes": [
+    "The image frame is the reviewed art. Runtime does not draw scene objects, CSS art, or lighting; it only adds category labels on the shelf rail.",
+    "The typewriter remains on the idle scene frame when the capture window opens or closes.",
+    "Book states are approved group-level motion frames. Several product categories share a spatial group frame because individual book identity is not a production invariant.",
+    "Scene hit areas are transparent interaction geometry aligned to real objects. Search and settings use window-level controls outside the master coordinate system."
+  ]
+}
