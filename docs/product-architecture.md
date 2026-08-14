@@ -1,5 +1,7 @@
 # 产品架构｜Paopao AI 数字分身
 
+> 生命周期：historical product exploration。本文描述早期多模态、Self Model 和主动能力方向，不是当前 MVP 需求；当前范围以 [`docs/mvp/README.md`](./mvp/README.md) 为准。
+
 ## 1. 产品一句话
 
 泡泡是一个面向个人长期成长的 AI 数字分身，它通过飞书/Coze 接收用户的多模态生活输入，沉淀长期记忆，构建自我模型，并主动推动用户完成认知、财富、领导力、表达和世界经验的复利增长。

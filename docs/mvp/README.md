@@ -6,7 +6,7 @@
 > 范围修订：2026-08-08，飞书移至 MVP 后增量，Wave 4 增加 macOS/Windows 产品化发布，见 [`ADR 0004`](../adr/0004-defer-feishu-post-mvp.md) 与 [`Wave 4 施工单`](./wave4-product-release.md)  
 > 适用对象：产品负责人、协调 Agent、实现 Agent、验收 Agent
 
-本目录把现有产品文档收敛成一套可由多个 Agent 协作实施的工程基线。这里定义“做什么”；接口细节见 [`contracts.md`](./contracts.md)，施工顺序见 [`implementation-plan.md`](./implementation-plan.md)，可直接派发的工作 Prompt 见 [`agent-prompts.md`](./agent-prompts.md)。
+本目录把现有产品文档收敛成一套可由多个 Agent 协作实施的工程基线。这里定义“做什么”；接口细节见 [`contracts.md`](./contracts.md)，施工顺序见 [`implementation-plan.md`](./implementation-plan.md)，当前指标见 [`metrics.md`](./metrics.md)，可直接派发的工作 Prompt 见 [`agent-prompts.md`](./agent-prompts.md)。
 
 本目录不定义活书房的目标风格、构图、媒介、配色、材质或指定素材。任何 Agent 都不得从文档、自动报告或当前实现推断目标美术；只使用本轮用户提供或确认的参考。程序只负责生成稳定截图和工程测量，实际视觉评审必须针对当前候选画面输出问题、判断依据与下一轮美术指导，不能输出或追求软件意义上的美术 PASS。
 
@@ -107,7 +107,7 @@ MVP 的首要指标不是模型回复质量，而是可信记录闭环。必须�
 - 活书房使用真实 SQLite 列表、详情、数量和搜索结果。飞书实现保留为已验证的 MVP 后增量。
 - 当前全量自动化与 macOS arm64 Electron E2E 通过；详细计数和候选报告只在 [`gate-status.md`](./gate-status.md) 维护。
 
-当前首要风险不是功能空缺，而是交付基线：`HEAD` 与 `origin/main` 仍停在 `c08fa15`，大量 MVP 源码、测试和 CI 文件尚未进入 Git。远端提交目前无法重建通过验证的本地候选。
+当前首要风险不是功能空缺，而是可重建的交付基线与跨平台发布证据。具体分支、工作树、测试报告和发布阻塞只在 [`gate-status.md`](./gate-status.md) 维护，本总纲不复制动态 SHA 或文件计数。
 
 G4 仍未完成。macOS x64、Windows x64、干净机安装、真实 OS 指针拖动、公开签名/notarization 和持续视觉迭代仍是发布阻塞项。
 

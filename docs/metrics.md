@@ -1,5 +1,7 @@
 # 指标体系｜AI 分身互动效果
 
+> 生命周期：historical / V1 input。本文保留多模态、Self Model、主动提醒和社交场景的未来指标输入；当前 MVP 验收只使用 [`mvp/metrics.md`](./mvp/metrics.md)。
+
 ## 1. 北极星指标
 
 用户是否觉得泡泡“越来越懂我，并且真的推动我变强”。

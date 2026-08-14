@@ -7,8 +7,11 @@ This index is maintained by A0. Each ADR records a decision that affects more th
 - [0002 Contract v1 legacy-field mapping](./0002-contract-v1-legacy-field-mapping.md)
 - [0003 Preload capability boundary and verifiable sandbox bundle](./0003-preload-sandbox-bundle.md)
 - [0004 Defer Feishu connector beyond MVP](./0004-defer-feishu-post-mvp.md)
-- [Provider OpenAI structured output v1](./provider-openai-structured-output-v1.md)
 - [0005 Named AI Provider Profiles and Codex channel reuse](./0005-ai-provider-profiles-v2.md)
+
+## Superseded In Part
+
+- [Provider OpenAI structured output v1](./provider-openai-structured-output-v1.md): historical G0 baseline, superseded in part by ADR 0005.
 
 ADR 0005 supersedes the original Provider ADR's single-provider settings and
 allowlist decision. The frozen `AiProviderV1`, output validation, audit fields,

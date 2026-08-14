@@ -1,5 +1,7 @@
 # Coze Workflow 设计｜AI 数字分身 Agent
 
+> 生命周期：historical architecture exploration。Coze、旧分类、Self Model 自动回写和主动提醒不属于当前桌面 MVP 运行路径。
+
 ## 1. Coze Bot 定位
 
 Bot 名称：Paopao 泡泡

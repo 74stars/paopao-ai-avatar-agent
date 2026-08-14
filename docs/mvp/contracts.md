@@ -533,7 +533,6 @@ paopao:v1:window.toggleCapture
 paopao:v1:window.hideCapture
 paopao:v1:window.openLibrary
 paopao:v1:window.openSettings
-paopao:v1:window.moveBy
 ```
 
 preload 只暴露语义方法。订阅必须返回清理函数：
@@ -542,12 +541,6 @@ preload 只暴露语义方法。订阅必须返回清理函数：
 interface LibrarySummaryV1 {
   total: number;
   shelves: Array<{ type: MemoryType; count: number }>;
-}
-
-interface WindowMoveRequestV1 {
-  version: 1;
-  deltaX: number; // 整数，-200..200；只允许当前 Renderer 所属窗口移动
-  deltaY: number; // 整数，-200..200
 }
 
 interface SaveAiCredentialRequestV1 {
@@ -742,7 +735,6 @@ interface PaopaoApiV1 {
     hideCapture(input: { version: 1 }): Promise<Result<{ visible: false }>>;
     openLibrary(input: { version: 1 }): Promise<Result<{ visible: true }>>;
     openSettings(input: { version: 1 }): Promise<Result<{ visible: true }>>;
-    moveBy(input: WindowMoveRequestV1): Promise<void>;
   };
   events: {
     subscribe(handler: (event: DomainEventV1) => void): () => void;
@@ -750,9 +742,9 @@ interface PaopaoApiV1 {
 }
 ```
 
-`window.moveBy` 只用于窗口拖动，不接受绝对屏幕坐标或路径；Main 必须通过
-`BrowserWindow.fromWebContents(event.sender)` 绑定目标窗口并再次校验范围。
-泡泡的拖动超过 3px 后不得继续触发 click/double-click 业务动作。
+泡泡窗口不划分 `drag`/`no-drag` 区域。Main 进程观察整窗的 `mouseDown`/`mouseMove`/`mouseUp`，
+以按下时的全局指针坐标和窗口原点为基准直接调用 `BrowserWindow.setPosition`；移动超过 3px 后
+不得触发 click/double-click 业务动作。Renderer 只负责指针捕获，不通过 IPC 发送逐帧窗口位移。
 
 凭据保存是唯一允许 Secret 短暂出现在 Renderer -> Main DTO 的场景：必须由明确用户操作触发，属于 write-only IPC，完成后立即从组件 state 清空；任何读取 API、错误 details、事件或日志都不得回传 Secret。
 

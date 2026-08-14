@@ -1,8 +1,9 @@
-# Paopao 非美术状态快照
+# Paopao 非美术状态快照（2026-08-13）
 
-> 更新日期：2026-08-13
+> 生命周期：historical snapshot，不再作为动态状态源。
+> 当前状态权威：[`docs/mvp/gate-status.md`](./mvp/gate-status.md)。
 > 范围：项目除美术/视觉设计评审以外的工程、数据、验证、发布与治理状态。
-> 本文只记录可核对的工程事实；不产出美术 PASS/FAIL，也不定义当前候选画面。
+> 本文只记录 2026-08-13 当日可核对的工程事实；不产出美术 PASS/FAIL，也不定义当前候选画面。
 
 ## 1. 项目定位与当前范围
 
@@ -97,7 +98,7 @@ Paopao 泡泡是一个本地优先的 macOS/Windows 桌面记忆 Agent。MVP 链
 - `desktop-app/electron/provider-profile-store.ts`：最多 32 个命名 Profile、active 单例、generation 缓存失效。
 - `desktop-app/electron/ai-provider-services.ts`：Profile 解析、Direct/Codex Provider factory、探活。
 - `desktop-app/electron/codex-provider.ts`：受限 Codex 子进程结构化输出。
-- `desktop-app/electron/window-movement.ts`：受 Schema 约束的窗口移动。
+- `desktop-app/electron/pet-gesture.ts`：泡泡整窗原生拖动下的 Main 侧点击/双击识别。
 
 ### 5.3 Renderer
 
@@ -105,7 +106,7 @@ Paopao 泡泡是一个本地优先的 macOS/Windows 桌面记忆 Agent。MVP 链
 - `PetWindow.tsx`、`CaptureWindow.tsx`、`LibraryWindow.tsx`：三窗口交互。
 - `LibraryState.tsx`、`LibraryShelf.tsx`、`LibraryReaderSheet.tsx`、`RecordContent.tsx`：书房列表、详情与阅读。
 - `EntryGovernance.tsx`、`DataManagement.tsx`、`SettingsPanel.tsx`：纠正、数据控制、Provider 与飞书设置。
-- `library-detail.ts`、`library-theme.ts`、`pet-interaction.ts`、`error-messages.ts`：状态推导、主题、点击状态机与错误文案。
+- `library-detail.ts`、`library-theme.ts`、`error-messages.ts`：状态推导、主题与错误文案。
 
 ### 5.4 测试与评测
 

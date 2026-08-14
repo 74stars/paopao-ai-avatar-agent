@@ -1,6 +1,6 @@
 # MVP Gate Status
 
-Updated: 2026-08-11
+Updated: 2026-08-15
 
 本文件只保留当前候选的工程状态。截图、像素和自动化测试用于证明资源加载、渲染完整性与交互事实，不产生美术结论。每轮实际截图评审都必须输出下一轮美术指导。
 
@@ -28,13 +28,15 @@ Updated: 2026-08-11
 
 当前工作树最近一次全量自动化结果：
 
-- Desktop：136 项通过。
-- Infrastructure：79 项通过。
-- Feishu Adapter：38 项通过。
+- Build：全部 workspace、Renderer 和 Electron 构建通过。
+- Desktop：161 项通过，其中 P5 资源测试持续校验 production manifest、运行 manifest、12 个场景帧和 approved hash。
+- Infrastructure：82 项通过。
+- Feishu Adapter：40 项通过。
 - G3 跨层与安全：4 项通过。
 - Offline eval：1 项通过。
-- Electron Wave 4 E2E：11 项通过，当前报告为 `test-results/e2e-wave4/2026-08-11T10-18-33-826Z/report.json`。
-- AI Provider E2E 通过，当前报告为 `test-results/e2e-ai-provider/2026-08-11T08-01-50-504Z/report.json`。
+- Electron Wave 4 E2E：16 个工程验收场景通过，当前报告为 `test-results/e2e-wave4/2026-08-14T18-10-36-018Z/report.json`。
+- AI Provider E2E：通过，保留报告为 `test-results/e2e-ai-provider/2026-08-14T15-53-36-666Z/report.json`。
+- Online Preview：5 项浏览器 E2E 通过，覆盖 dialog 语义、inert 关闭态、初始焦点、Tab 约束、Escape/背景关闭、焦点恢复和 390px 无横向溢出；当前报告为 `test-results/preview-accessibility/2026-08-14T19-06-53-540Z/report.json`。
 
 E2E 报告明确限定为 engineering evidence。它证明画布非空、资源无加载错误、控件可达、凭据只写、窗口交互和本地保存闭环成立，不证明视觉质量。
 
@@ -52,11 +54,11 @@ E2E 报告明确限定为 engineering evidence。它证明画布非空、资源�
 
 ## G4 阻塞项
 
-- 当前实现尚未形成可由远端提交重建的 Git 基线：`HEAD` 与 `origin/main` 仍为 `c08fa15`，大量 MVP 源码、测试和 CI 文件处于未提交或未跟踪状态。
-- 只有 macOS arm64 内部 DMG/ZIP；macOS x64、Windows x64、干净机安装和真实 OS 指针拖动尚未验收。
-- 公开发布所需的签名和 macOS notarization 尚未完成。
+- 数据、Feishu、Electron、Desktop/Library、Preview、release 自动化与文档已形成可审计提交；SSH 认证和 LFS dry-run 通过，但提交/LFS 对象尚未 push，annotated tag 尚未建立。
+- 只有旧 macOS arm64 内部 DMG/ZIP；新的 macOS x64/arm64、Windows x64 和干净 runner 安装/移除证据尚未由 tag workflow 生成。
+- 正式发布自动化已建立签名、公证和发布硬门禁；七项仓库签名 secrets 是否可用仍须在远端 workflow 验证，未签名产物不得发布。
 - 当前活书房候选仍需持续截图评审和下一轮美术指导；工程测试不得关闭视觉工作。
-- `test-results` 已只保留当前 Wave 4 与 Provider 证据；临时生图参考和遗留 release 仍需在建立 Git 基线后直接清除，不保留撤销标记。
+- `test-results` 已轮转为当前 Wave 4、Provider、静态设计和 Preview 证据；release 只保留有 SHA-256 的旧内部候选；design PNG/WebP 已由 Git LFS 管理，`tmp` 独有生图输入仍按清理计划保护。
 
 ## 当前发布产物
 

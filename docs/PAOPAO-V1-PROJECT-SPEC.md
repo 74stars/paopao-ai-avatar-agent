@@ -1,5 +1,6 @@
 # Paopao 泡泡：成熟 AI 桌面应用完整项目规格
 
+> 生命周期：roadmap / historical baseline。本文的“当前已经/当前还没有”基于 2026-08-04 基线，已不代表当前实现；当前 MVP 以 [`docs/mvp/README.md`](./mvp/README.md) 和 [`docs/mvp/gate-status.md`](./mvp/gate-status.md) 为准。
 > 版本：V1.0  
 > 编写日期：2026-08-04  
 > 基准仓库：<https://github.com/74stars/paopao-ai-avatar-agent>  

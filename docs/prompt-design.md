@@ -1,5 +1,7 @@
 # Prompt 设计｜泡泡数字超我
 
+> 生命周期：historical prompt exploration。本文不是当前运行 Prompt；生产 Prompt 以版本化 `prompts/` 文件和 Prompt Registry 为准。
+
 ## 1. System Prompt
 
 ```text

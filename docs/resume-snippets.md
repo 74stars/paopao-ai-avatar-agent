@@ -1,5 +1,7 @@
 # 简历项目描述
 
+> 生命周期：historical draft，不得直接作为当前对外能力声明。本文混合了已实现、实验性和概念设计内容，使用前必须按 [`docs/mvp/gate-status.md`](./mvp/gate-status.md) 重新对账。
+
 ## 项目名称
 
 Paopao 泡泡｜Coze AI 数字分身 Agent

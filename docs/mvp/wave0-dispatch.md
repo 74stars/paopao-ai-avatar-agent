@@ -1,5 +1,7 @@
 # Wave 0 Dispatch
 
+> Lifecycle: completed execution history. G0 is closed; this file is not a current dispatch plan.
+
 Updated: 2026-08-05
 
 ## Objective

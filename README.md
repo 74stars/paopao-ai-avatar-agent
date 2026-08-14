@@ -1,22 +1,22 @@
-# Paopao 泡泡 - 桌面智能 Agent
+# 泡泡 - 桌面记录与活书房
 
-泡泡是一个常驻 macOS/Windows 桌面的本地优先文字记录入口。MVP 先把原文可靠保存到本机，再把可追溯的思想、目标、人物、阅读和日常装订进活书房。
+泡泡是一个常驻 macOS/Windows 桌面的本地优先文字记录入口。它先把原文可靠保存在本机，再将可追溯的思想、目标、人物、阅读和日常整理进活书房。
 
 ![泡泡活书房](./assets/paopao-living-library.webp)
 
 ## 现在的主产品
 
-- `desktop-app/`：Electron + React + TypeScript 的 macOS/Windows 桌面 Agent。
+- `desktop-app/`：Electron + React + TypeScript 的 macOS/Windows 桌面应用。
 - 桌面泡泡：透明悬浮、可拖动靠边、单击投递、双击打开活书房。
-- 快速投递口：文字实时入口，默认只记住，也可显式请求思考。
+- 快速记录：随时保存文字，支持“记住”和“思考”两种模式。
 - 活书房：日记、思想、人物、阅读和目标按书脊生长；日报、周报暂不属于 MVP。
-- `preview/`：为了让任何人不用安装也能理解产品气质而做的在线活书房预览。
+- `preview/`：使用隔离模拟数据展示产品气质和未来概念，不接入桌面数据库，也不代表未开放能力已经实现。
 
 ## 产品判断
 
-泡泡不是一个网页，也不是每条都回复的聊天框。它更像一个桌面上的抽象智慧生命：安静地记住，长期地理解，在真正重要的节点给出独立判断和行动牵引。
+泡泡不是网页或聊天框，而是桌面常驻的记录入口：安静保存内容，并在需要时提供整理和洞察。
 
-它不模仿用户说话，而是依据可追溯的记录形成整理和洞察；用户可以编辑记录、调整 AI 分类与摘要、删除并导出自己的数据。
+它依据可追溯的记录形成整理和洞察；用户可以编辑记录、调整分类与摘要、删除并导出自己的数据。
 
 ## 快速体验
 
@@ -26,10 +26,12 @@
 https://74stars.github.io/paopao-ai-avatar-agent/preview/
 ```
 
+在线页面是模拟数据概念演示。当前桌面 MVP 仅支持文字记录；语音、图片、链接、文件和报告入口尚未开放。
+
 直达入口：
 
-- 快速投递：`https://74stars.github.io/paopao-ai-avatar-agent/preview/?demo=capture`
-- 周报阅读：`https://74stars.github.io/paopao-ai-avatar-agent/preview/?demo=reader&theme=night`
+- 快速记录：`https://74stars.github.io/paopao-ai-avatar-agent/preview/?demo=capture`
+- 记录阅读：`https://74stars.github.io/paopao-ai-avatar-agent/preview/?demo=reader&theme=night`
 
 本地运行桌面应用：
 
@@ -42,7 +44,7 @@ npm.cmd run dev --workspace=paopao-desktop
 
 ```mermaid
 flowchart LR
-  Pet[桌面泡泡] --> Capture[快速投递口]
+  Pet[桌面泡泡] --> Capture[快速记录]
   Capture --> Raw[本地原始档案]
   Raw --> AI[理解与分类]
   AI --> Books[活书房]
@@ -58,20 +60,20 @@ flowchart LR
 
 ## 目录
 
-- `desktop-app/`：桌面 Agent 源码。
-- `adapters/feishu/`：已完成自动化验证的实验性飞书 Adapter，保留为 MVP 后增量基线。
+- `desktop-app/`：桌面应用源码。
+- `adapters/feishu/`：已完成自动化验证的实验性飞书适配器，保留为后续功能基线。
 - `preview/`：零依赖在线活书房预览。
 - `prototype/`：早期网页原型，保留作产品演进记录。
 - `feishu-bot/`：早期飞书消息入口骨架，仅作历史记录，不进入当前运行路径。
 - `docs/PAOPAO-MVP-PLAN.md`：当前本地优先 MVP 的范围、架构、开发阶段与验收标准；飞书作为 MVP 后增量记录。
 - `docs/PAOPAO-V1-PROJECT-SPEC.md`：成熟 V1 的完整链路、实施路线与验收标准。
-- `docs/`：产品架构、Prompt、Coze workflow、指标与日志。
+- `docs/README.md`：当前需求、状态、审核、设计、决策与历史材料的统一文档索引。
 
 ## 当前路线
 
-- 本地“文字输入 -> SQLite -> 持久化任务 -> AI 整理 -> 真实书房”闭环已通过自动化门禁。
-- 搜索、整理依据、分类/摘要调整、记录 revision、删除、导出、备份恢复和 Provider 配置已经接入。
-- 当前优先建立可复现 Git 基线，并完成 macOS x64、Windows x64、干净机、真实窗口拖动和公开签名验收。
+- 本地“文字输入 -> 本地存储 -> 持久化任务 -> 自动整理 -> 活书房”闭环已通过自动化验证。
+- 搜索、整理依据、分类与摘要调整、记录版本、删除、导出、备份恢复和 AI 服务配置已经接入。
+- 可复现 Git/LFS 基线和正式 release workflow 已在本地建立；当前发布 Gate 是远端 push/tag、Windows/macOS 干净 runner、真实签名和 Apple 公证验证。
 - 截图和交互检查只提供工程证据；每轮实际画面继续输出下一轮美术指导，不设置软件意义上的美术 PASS。
 - 飞书连接器移至 MVP 后增量；现有代码保留，但真实租户验收和正式产品化延期。
 - 语音、图片、链接、文件、日报和周报在 MVP 验收后按真实需求扩展。
