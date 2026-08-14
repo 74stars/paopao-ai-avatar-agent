@@ -84,7 +84,7 @@ export interface PaopaoRendererApi {
     toggleCapture(): Promise<void>;
     hideCapture(): Promise<void>;
     openLibrary(): Promise<void>;
-    moveBy(input: { version: 1; deltaX: number; deltaY: number }): Promise<void>;
+    onCaptureVisibilityChanged(handler: (visible: boolean) => void): () => void;
   };
   onDomainEvent(handler: (event: DomainEventV1) => void): () => void;
 }

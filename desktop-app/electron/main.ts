@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, powerMonitor, safeStorage, Tray } from "electron";
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, powerMonitor, safeStorage, Tray } from "electron";
 import type { DomainEventV1 } from "@paopao/contracts";
 import { randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
@@ -7,22 +7,32 @@ import { fileURLToPath } from "node:url";
 import { isAllowedNavigation, resolveDevServerUrl } from "./navigation.js";
 import { createDesktopApi, IPC_CHANNELS, registerPaopaoIpc } from "./ipc.js";
 import { createMainComposition, resolveRuntimeResources } from "./composition.js";
-import { moveWindowBy } from "./window-movement.js";
+import { createPetClickScheduler, createPetWindowDragController, isPetPrimaryMouseButton } from "./pet-gesture.js";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const devServerUrl = resolveDevServerUrl(process.env.PAOPAO_DEV_SERVER_URL);
+const applicationName = "泡泡";
+const applicationId = "com.paopao.desktop";
 let petWindow: BrowserWindow | null = null;
 let captureWindow: BrowserWindow | null = null;
 let libraryWindow: BrowserWindow | null = null;
+const libraryWindowsReady = new WeakSet<BrowserWindow>();
 let tray: Tray | null = null;
 let composition: Awaited<ReturnType<typeof bootstrap>> | null = null;
 let quitting = false;
 let latestFeishuStatus: Extract<DomainEventV1, { type: "feishu:status" }> | null = null;
+const petClickScheduler = createPetClickScheduler({
+  onSingle: toggleCapture,
+  onDouble: openLibrary
+});
+const petDrag = createPetWindowDragController();
 const handleSystemResume = () => { void composition?.checkConnectionAfterWake().catch(() => undefined); };
 
 app.whenReady().then(startApplication).catch(handleStartupFailure);
 
 async function startApplication() {
+  configureApplicationIdentity();
+  setApplicationIcon();
   composition = await bootstrap();
   await composition.start();
   registerPaopaoIpc(ipcMain, createDesktopApi(composition.services));
@@ -31,6 +41,11 @@ async function startApplication() {
   globalShortcut.register("CommandOrControl+Shift+Space", toggleCapture);
   registerWindowIpc();
   powerMonitor.on("resume", handleSystemResume);
+}
+
+function configureApplicationIdentity() {
+  app.setName(applicationName);
+  if (process.platform === "win32") app.setAppUserModelId(applicationId);
 }
 
 function handleStartupFailure(error: unknown) {
@@ -61,6 +76,9 @@ app.on("window-all-closed", () => {});
 app.on("before-quit", (event) => {
   globalShortcut.unregisterAll();
   powerMonitor.removeListener("resume", handleSystemResume);
+  petClickScheduler.cancel();
+  petDrag.cancel();
+  petClickScheduler.dispose();
   if (quitting) return;
   quitting = true;
   event.preventDefault();
@@ -72,9 +90,6 @@ function registerWindowIpc() {
   ipcMain.handle(IPC_CHANNELS.windowToggleCapture, toggleCapture);
   ipcMain.handle(IPC_CHANNELS.windowHideCapture, () => captureWindow?.hide());
   ipcMain.handle(IPC_CHANNELS.windowOpenLibrary, openLibrary);
-  ipcMain.handle(IPC_CHANNELS.windowMoveBy, (event, rawInput) => {
-    moveWindowBy(rawInput, BrowserWindow.fromWebContents(event.sender));
-  });
 }
 
 async function bootstrap() {
@@ -97,30 +112,74 @@ async function bootstrap() {
 
 function createWindows() {
   const preload = join(currentDir, "preload.cjs");
-  petWindow = new BrowserWindow({ width: 112, height: 112, transparent: true, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, hasShadow: false, webPreferences: secureWebPreferences(preload) });
-  captureWindow = new BrowserWindow({ width: 430, height: 548, frame: false, transparent: true, resizable: false, show: false, alwaysOnTop: true, skipTaskbar: true, webPreferences: secureWebPreferences(preload) });
+  const icon = getRendererAssetPath("app-icon.png");
+  petWindow = new BrowserWindow({ width: 112, height: 112, transparent: true, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, hasShadow: false, acceptFirstMouse: true, icon, webPreferences: secureWebPreferences(preload) });
+  captureWindow = new BrowserWindow({ width: 430, height: 548, frame: false, transparent: true, resizable: false, show: false, alwaysOnTop: true, skipTaskbar: true, icon, webPreferences: secureWebPreferences(preload) });
+  captureWindow.on("show", () => broadcastCaptureVisibility(true));
+  captureWindow.on("hide", () => broadcastCaptureVisibility(false));
   loadSurface(petWindow, "pet");
   loadSurface(captureWindow, "capture");
   createLibraryWindow(false);
   attachLatestStatusReplay(petWindow);
   attachLatestStatusReplay(captureWindow);
+  registerPetMouseEvents(petWindow);
   petWindow.once("ready-to-show", () => petWindow?.showInactive());
+}
+
+function registerPetMouseEvents(window: BrowserWindow) {
+  window.on("blur", () => {
+    petDrag.cancel();
+  });
+  window.webContents.on("before-mouse-event", (event, mouse) => {
+    if (!isPetPrimaryMouseButton(mouse.button)) return;
+    const point = resolveGlobalMousePoint(window, mouse);
+    if (!point) {
+      petDrag.cancel();
+      return;
+    }
+
+    if (mouse.type === "mouseDown") {
+      const [windowX, windowY] = window.getPosition();
+      petDrag.pointerDown(point.x, point.y, windowX, windowY);
+      return;
+    }
+
+    if (mouse.type === "mouseMove") {
+      const target = petDrag.pointerMove(point.x, point.y);
+      if (!target) return;
+      petClickScheduler.cancel();
+      window.setPosition(target.x, target.y, false);
+      return;
+    }
+
+    if (mouse.type === "mouseUp") {
+      if (petDrag.pointerUp(point.x, point.y) === "click") petClickScheduler.click();
+    }
+  });
+}
+
+function resolveGlobalMousePoint(window: BrowserWindow, mouse: Electron.MouseInputEvent): { x: number; y: number } | null {
+  if (Number.isFinite(mouse.globalX) && Number.isFinite(mouse.globalY)) {
+    return { x: mouse.globalX as number, y: mouse.globalY as number };
+  }
+
+  const [windowX, windowY] = window.getPosition();
+  const x = windowX + mouse.x;
+  const y = windowY + mouse.y;
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
 }
 
 function createLibraryWindow(showWhenReady: boolean): BrowserWindow {
   const preload = join(currentDir, "preload.cjs");
-  const window = new BrowserWindow({ width: 1440, height: 900, minWidth: 1180, minHeight: 720, show: false, backgroundColor: "#1a1511", title: "泡泡 · 活书房", webPreferences: secureWebPreferences(preload) });
+  const window = new BrowserWindow({ width: 1440, height: 900, minWidth: 1180, minHeight: 720, show: false, backgroundColor: "#1a1511", title: "泡泡 · 活书房", icon: getRendererAssetPath("app-icon.png"), webPreferences: secureWebPreferences(preload) });
   libraryWindow = window;
   window.once("closed", () => {
     if (libraryWindow === window) libraryWindow = null;
   });
-  if (showWhenReady) {
-    window.once("ready-to-show", () => {
-      if (window.isDestroyed()) return;
-      window.show();
-      window.focus();
-    });
-  }
+  window.once("ready-to-show", () => {
+    libraryWindowsReady.add(window);
+    if (showWhenReady) showLibraryWindowWhenReady(window);
+  });
   attachLatestStatusReplay(window);
   loadSurface(window, "library");
   return window;
@@ -128,8 +187,17 @@ function createLibraryWindow(showWhenReady: boolean): BrowserWindow {
 
 function attachLatestStatusReplay(window: BrowserWindow) {
   window.webContents.on("did-finish-load", () => {
-    if (latestFeishuStatus && !window.isDestroyed()) window.webContents.send(IPC_CHANNELS.domainEvent, latestFeishuStatus);
+    if (window.isDestroyed()) return;
+    if (latestFeishuStatus) window.webContents.send(IPC_CHANNELS.domainEvent, latestFeishuStatus);
+    window.webContents.send(IPC_CHANNELS.windowCaptureVisibilityChanged, captureWindow?.isVisible() ?? false);
   });
+}
+
+function broadcastCaptureVisibility(visible: boolean) {
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (isWindowDestroyed(window) || window.webContents.isDestroyed()) continue;
+    window.webContents.send(IPC_CHANNELS.windowCaptureVisibilityChanged, visible);
+  }
 }
 
 function secureWebPreferences(preload: string) {
@@ -149,15 +217,31 @@ function loadSurface(window: BrowserWindow, surface: string) {
 }
 
 function createTray() {
-  tray = new Tray(getTrayIconPath());
-  tray.setToolTip("泡泡正在替你记住");
+  const icon = nativeImage.createFromPath(getTrayIconPath());
+  if (icon.isEmpty()) throw new Error("TRAY_ICON_MISSING");
+  if (process.platform === "darwin") icon.setTemplateImage(true);
+  tray = new Tray(icon);
+  tray.setToolTip("泡泡");
   tray.setContextMenu(Menu.buildFromTemplate([{ label: "快速记录", click: toggleCapture }, { label: "打开活书房", click: openLibrary }, { type: "separator" }, { label: "退出泡泡", click: () => app.quit() }]));
 }
 
 function getTrayIconPath() {
+  const filename = process.platform === "darwin"
+    ? "trayTemplate.png"
+    : process.platform === "win32"
+      ? "tray.ico"
+      : "tray.png";
+  return getRendererAssetPath(filename);
+}
+
+function setApplicationIcon() {
+  if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(getRendererAssetPath("app-icon.png"));
+}
+
+function getRendererAssetPath(filename: string) {
   return app.isPackaged
-    ? join(app.getAppPath(), "dist", "assets", "tray.png")
-    : join(app.getAppPath(), "public", "assets", "tray.png");
+    ? join(app.getAppPath(), "dist", "assets", filename)
+    : join(app.getAppPath(), "public", "assets", filename);
 }
 
 function getRendererEntryPath() {
@@ -170,10 +254,48 @@ function toggleCapture() {
 }
 
 function openLibrary() {
-  if (!libraryWindow || libraryWindow.isDestroyed()) {
+  if (!libraryWindow || isWindowDestroyed(libraryWindow)) {
     createLibraryWindow(true);
     return;
   }
-  libraryWindow.show();
-  libraryWindow.focus();
+  showLibraryWindow(libraryWindow);
+}
+
+function isWindowDestroyed(window: BrowserWindow): boolean {
+  try {
+    return window.isDestroyed();
+  } catch {
+    return true;
+  }
+}
+
+function showLibraryWindow(window: BrowserWindow) {
+  try {
+    if (window.isDestroyed()) {
+      if (libraryWindow === window) libraryWindow = null;
+      createLibraryWindow(true);
+      return;
+    }
+    // Wait for the renderer's first paint before revealing the window, so opening
+    // the library never flashes the dark backgroundColor (#1a1511) as a blank frame.
+    if (libraryWindowsReady.has(window)) {
+      window.show();
+      window.focus();
+    } else {
+      window.once("ready-to-show", () => showLibraryWindowWhenReady(window));
+    }
+  } catch {
+    if (libraryWindow === window) libraryWindow = null;
+    createLibraryWindow(true);
+  }
+}
+
+function showLibraryWindowWhenReady(window: BrowserWindow) {
+  try {
+    if (window.isDestroyed()) return;
+    window.show();
+    window.focus();
+  } catch {
+    if (libraryWindow === window) libraryWindow = null;
+  }
 }

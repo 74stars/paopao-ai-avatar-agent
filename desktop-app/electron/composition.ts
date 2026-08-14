@@ -162,7 +162,7 @@ export async function createMainComposition(options: {
       }
     },
   });
-  backupService = createBackupService({ databasePath: options.databasePath, backupsDirectory: join(dataDirectory, "backups"), restoreDirectory: join(dataDirectory, "restore"), lifecycle, clock });
+  backupService = createBackupService({ databasePath: options.databasePath, backupsDirectory: join(dataDirectory, "backups"), restoreDirectory: join(dataDirectory, "restore"), lifecycle, clock, events });
   const backups = createBackupFacade(backupService);
 
   // Startup recovery owns the database until the journal is resolved. IPC and the

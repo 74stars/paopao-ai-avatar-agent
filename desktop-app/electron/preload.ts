@@ -42,7 +42,6 @@ import {
 import { z } from "zod";
 
 import { IPC_CHANNELS } from "./preload-shared/ipc-channels.js";
-import { WindowMoveRequestV1Schema } from "./preload-shared/window-contracts.js";
 import {
   BackupListRequestV1Schema, BackupListResponseV1Schema, BackupRestoreRequestV1Schema, BackupRestoreReceiptV1Schema, BackupRestoreStatusRequestV1Schema, BackupRestoreStatusV1Schema,
   DiagnosticsExportCreateRequestV1Schema, DiagnosticsExportReceiptV1Schema, DiagnosticsExportGetRequestV1Schema, DiagnosticsExportStatusV1Schema,
@@ -51,13 +50,21 @@ import {
 
 type DomainEvent = z.infer<typeof DomainEventV1Schema>;
 const domainHandlers = new Set<(event: DomainEvent) => void>();
+const captureVisibilityHandlers = new Set<(visible: boolean) => void>();
 let latestFeishuStatus: Extract<DomainEvent, { type: "feishu:status" }> | null = null;
+let captureVisible = false;
 
 ipcRenderer.on(IPC_CHANNELS.domainEvent, (_event, rawEvent: unknown) => {
   const event = DomainEventV1Schema.safeParse(rawEvent);
   if (!event.success) return;
   if (event.data.type === "feishu:status") latestFeishuStatus = event.data;
   for (const handler of [...domainHandlers]) handler(event.data);
+});
+
+ipcRenderer.on(IPC_CHANNELS.windowCaptureVisibilityChanged, (_event, visible: unknown) => {
+  if (typeof visible !== "boolean") return;
+  captureVisible = visible;
+  for (const handler of [...captureVisibilityHandlers]) handler(visible);
 });
 
 contextBridge.exposeInMainWorld("paopao", {
@@ -117,9 +124,12 @@ contextBridge.exposeInMainWorld("paopao", {
     toggleCapture: () => ipcRenderer.invoke(IPC_CHANNELS.windowToggleCapture),
     hideCapture: () => ipcRenderer.invoke(IPC_CHANNELS.windowHideCapture),
     openLibrary: () => ipcRenderer.invoke(IPC_CHANNELS.windowOpenLibrary),
-    moveBy: (rawInput: unknown) => {
-      const input = WindowMoveRequestV1Schema.safeParse(rawInput);
-      return input.success ? ipcRenderer.invoke(IPC_CHANNELS.windowMoveBy, input.data) : Promise.resolve();
+    onCaptureVisibilityChanged: (handler: (visible: boolean) => void) => {
+      captureVisibilityHandlers.add(handler);
+      queueMicrotask(() => {
+        if (captureVisibilityHandlers.has(handler)) handler(captureVisible);
+      });
+      return () => captureVisibilityHandlers.delete(handler);
     }
   },
   onDomainEvent: (handler: (event: unknown) => void) => {

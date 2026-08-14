@@ -1,62 +1,42 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import type { PetState } from "../types/domain";
 import { BubbleLife } from "./BubbleLife";
-import { createPetClickScheduler } from "./pet-interaction";
+
+export function petKeyboardAction(key: string, shiftKey = false): "capture" | "library" | null {
+  if (key === "Enter" && shiftKey) return "library";
+  if (key === "Enter" || key === " ") return "capture";
+  return null;
+}
 
 export function PetWindow() {
   const [state, setState] = useState<PetState>("quiet");
-  const drag = useRef<{ pointerId: number; startX: number; startY: number; x: number; y: number; moved: boolean } | null>(null);
-  const suppressClick = useRef(false);
-  const clickScheduler = useRef(createPetClickScheduler({
-    onSingle: () => void window.paopao?.windows.toggleCapture(),
-    onDouble: () => void window.paopao?.windows.openLibrary()
-  })).current;
 
   useEffect(() => window.paopao?.onDomainEvent((event) => {
     if (event.type === "pet:state") setState(event.state);
   }), []);
 
-  useEffect(() => () => {
-    clickScheduler.dispose();
-  }, []);
-
-  function handleClick() {
-    if (suppressClick.current) {
-      suppressClick.current = false;
-      return;
-    }
-    clickScheduler.click();
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const action = petKeyboardAction(event.key, event.shiftKey);
+    if (!action) return;
+    event.preventDefault();
+    if (action === "library") void window.paopao?.windows.openLibrary();
+    else void window.paopao?.windows.toggleCapture();
   }
 
-  function handlePointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
-    drag.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY, moved: false };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
-  function handlePointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
-    const current = drag.current;
-    if (!current || current.pointerId !== event.pointerId) return;
-    const deltaX = Math.round(event.clientX - current.x);
-    const deltaY = Math.round(event.clientY - current.y);
-    current.x = event.clientX;
-    current.y = event.clientY;
-    if (!current.moved && Math.abs(event.clientX - current.startX) + Math.abs(event.clientY - current.startY) < 3) return;
-    current.moved = true;
-    void window.paopao?.windows.moveBy({ version: 1, deltaX, deltaY });
-  }
-
-  function handlePointerUp(event: ReactPointerEvent<HTMLButtonElement>) {
-    const current = drag.current;
-    if (!current || current.pointerId !== event.pointerId) return;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    suppressClick.current = current.moved;
-    drag.current = null;
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   }
 
   return (
-    <button className="pet-window" aria-label="泡泡：单击快速记录，双击打开活书房" onClick={handleClick} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
+    <div className="pet-window" role="button" tabIndex={0} aria-label="泡泡：按 Enter 快速记录，按 Shift+Enter 打开活书房" aria-keyshortcuts="Enter Space Shift+Enter" onKeyDown={handleKeyDown} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
       <BubbleLife state={state} compact />
-    </button>
+    </div>
   );
 }

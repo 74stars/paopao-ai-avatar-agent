@@ -32,8 +32,8 @@ export const IPC_CHANNELS = {
   feishuListDeliveryIssues: "paopao:v1:feishu.listDeliveryIssues",
   feishuResolveDeliveryIssue: "paopao:v1:feishu.resolveDeliveryIssue",
   domainEvent: "paopao:v1:event",
+  windowCaptureVisibilityChanged: "paopao:v1:window.captureVisibilityChanged",
   windowToggleCapture: "paopao:v1:window.toggleCapture",
   windowHideCapture: "paopao:v1:window.hideCapture",
-  windowOpenLibrary: "paopao:v1:window.openLibrary",
-  windowMoveBy: "paopao:v1:window.moveBy"
+  windowOpenLibrary: "paopao:v1:window.openLibrary"
 } as const;
