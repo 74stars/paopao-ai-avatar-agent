@@ -122,7 +122,7 @@ async function runProviderE2E() {
   const row = library.locator(".ai-provider-row", { hasText: "E2E Provider" });
   await row.waitFor({ state: "visible" });
   assert.equal(await library.locator("[data-testid='ai-provider-api-key']").inputValue(), "", "Credential remained in the Renderer input");
-  assert.match(await row.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+  assert.equal(await row.locator(".ai-provider-badge").textContent(), "当前使用 · 可用");
 
   const profilePath = path.join(userDataDirectory, "secrets", "ai-providers.v2.json");
   assert.equal(existsSync(profilePath), true, "Encrypted Provider profile store was not created");
@@ -134,7 +134,7 @@ async function runProviderE2E() {
   await advanced.locator("summary").click();
   await library.locator("[data-testid='ai-provider-timeout']").fill("90000");
   await library.locator("[data-testid='ai-provider-save']").click();
-  assert.match(await row.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+  assert.equal(await row.locator(".ai-provider-badge").textContent(), "当前使用 · 可用");
 
   const editor = library.locator("[data-testid='ai-provider-editor']");
   await editor.getByRole("button", { name: "取消编辑", exact: true }).click();
@@ -149,7 +149,7 @@ async function runProviderE2E() {
   assert.equal(await library.locator("[data-testid='ai-provider-timeout']").inputValue(), "90000");
   assert.equal(await library.locator("[data-testid='ai-provider-model']").inputValue(), "e2e-model");
   await library.locator("[data-testid='ai-provider-save']").click();
-  assert.match(await row.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+  assert.equal(await row.locator(".ai-provider-badge").textContent(), "当前使用 · 可用");
   const storedOpenAi = JSON.parse(readFileSync(profilePath, "utf8")).profiles.find((profile) => profile.name === "E2E Provider");
   assert.equal(storedOpenAi.timeoutMs, 90_000, "Advanced timeout did not round-trip");
   await screenshot(library, "settings-provider-custom-reopen.png");
@@ -165,7 +165,7 @@ async function runProviderE2E() {
   await library.locator("[data-testid='ai-provider-save']").click();
   const localRow = library.locator(".ai-provider-row", { hasText: "E2E Local" });
   await localRow.waitFor({ state: "visible" });
-  assert.match(await localRow.locator(".ai-provider-badge").textContent(), /当前激活.*可用/);
+  assert.equal(await localRow.locator(".ai-provider-badge").textContent(), "当前使用 · 可用");
   const storedLocal = JSON.parse(readFileSync(profilePath, "utf8")).profiles.find((profile) => profile.name === "E2E Local");
   assert.equal(storedLocal.authMode, "none");
   assert.equal(storedLocal.baseUrl, "http://127.0.0.1:11434/v1");
