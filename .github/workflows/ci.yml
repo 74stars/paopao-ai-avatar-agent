@@ -26,6 +26,7 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:integration
       - run: npm run test:evals
+      - run: xvfb-run -a npm run test:e2e:preview
       - run: npm run build
       - run: xvfb-run -a npm run smoke:preload:runtime
 

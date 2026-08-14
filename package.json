@@ -2,7 +2,7 @@
   "name": "paopao",
   "version": "0.1.0",
   "private": true,
-  "description": "Paopao local-first desktop MVP",
+  "description": "Paopao local-first desktop capture and living library",
   "workspaces": [
     "desktop-app",
     "packages/*",
@@ -25,6 +25,7 @@
     "test:evals": "node --test --import tsx evals/runners/offline.test.mts",
     "test:e2e": "node tests/e2e/electron-wave4.e2e.cjs",
     "test:e2e:provider": "node tests/e2e/electron-ai-provider.e2e.cjs",
+    "test:e2e:preview": "node tests/e2e/preview-accessibility.e2e.cjs",
     "build": "npm run build --workspace=@paopao/domain && npm run build --workspace=@paopao/contracts && npm run build --workspace=@paopao/core && npm run build --workspace=@paopao/infrastructure && npm run build --workspace=@paopao/feishu-adapter && npm run build --workspace=paopao-desktop",
     "build:renderer": "npm run build:renderer --workspace=paopao-desktop",
     "build:electron": "npm run build:electron --workspace=paopao-desktop",

@@ -29,10 +29,17 @@ jobs:
         with:
           enablement: true
 
+      - name: Stage public Preview only
+        run: |
+          mkdir -p _site/preview
+          cp -R preview/. _site/preview/
+          printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=./preview/"><title>Paopao Preview</title><a href="./preview/">Open Paopao Preview</a>' > _site/index.html
+          touch _site/.nojekyll
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy
         id: deployment
