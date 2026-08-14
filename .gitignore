@@ -8,6 +8,7 @@ data/*.db
 feishu-bot/data/
 .DS_Store
 Thumbs.db
+/dist/
 desktop-app/dist/
 desktop-app/dist-electron/
 desktop-app/release/

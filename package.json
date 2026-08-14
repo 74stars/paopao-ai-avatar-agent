@@ -15,6 +15,7 @@
   "packageManager": "npm@11.6.0",
   "scripts": {
     "format:check": "git diff --check",
+    "release:verify": "node scripts/verify-release.mjs",
     "lint": "npm run typecheck",
     "typecheck": "npm run check --workspace=paopao-desktop && npm run typecheck --workspaces --if-present",
     "test": "npm run test:contracts && npm run test:unit && npm run test:integration && npm run test:evals",
