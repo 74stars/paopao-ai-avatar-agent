@@ -1,8 +1,10 @@
+import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { config } from "./config.js";
 import { appendRawEvent, ensureStore } from "./store.js";
 import { extractTextMessage, sendCustomBotText, sendFeishuText, verifyEventToken } from "./feishu.js";
 import { morningMessage, nightlyMessage, processUserInput } from "./paopao.js";
+import { publicHttpFailure, publicHttpFailureLog } from "./http-errors.js";
 
 await ensureStore();
 
@@ -16,11 +18,11 @@ const server = http.createServer(async (req, res) => {
       const body = await readJson(req);
 
       if (body.type === "url_verification") {
-        if (!verifyEventToken(body)) return json(res, 401, { error: "invalid token" });
+        if (!verifyEventToken(body)) return json(res, 401, { error: { code: "UNAUTHORIZED", message: "身份验证失败。" } });
         return json(res, 200, { challenge: body.challenge });
       }
 
-      if (!verifyEventToken(body)) return json(res, 401, { error: "invalid token" });
+      if (!verifyEventToken(body)) return json(res, 401, { error: { code: "UNAUTHORIZED", message: "身份验证失败。" } });
 
       await appendRawEvent({ kind: "feishu_event", body });
       const message = extractTextMessage(body);
@@ -47,10 +49,11 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
 
-    return json(res, 404, { error: "not found" });
+    return json(res, 404, { error: { code: "NOT_FOUND", message: "请求地址不存在。" } });
   } catch (error) {
-    console.error(error);
-    return json(res, 500, { error: error.message });
+    const failure = publicHttpFailure(error, randomUUID());
+    console.error(publicHttpFailureLog(failure));
+    return json(res, failure.status, failure.body);
   }
 });
 

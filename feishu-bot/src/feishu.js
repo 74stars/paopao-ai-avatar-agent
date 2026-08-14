@@ -18,7 +18,7 @@ export async function getTenantAccessToken() {
   }
 
   if (!config.feishu.appId || !config.feishu.appSecret) {
-    throw new Error("Missing FEISHU_APP_ID or FEISHU_APP_SECRET");
+    throw new Error("FEISHU_NOT_CONFIGURED");
   }
 
   const response = await fetch("https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal", {
@@ -31,7 +31,7 @@ export async function getTenantAccessToken() {
   });
   const data = await response.json();
   if (data.code !== 0) {
-    throw new Error(`Failed to get tenant token: ${JSON.stringify(data)}`);
+    throw new Error("FEISHU_AUTH_FAILED");
   }
 
   tenantTokenCache = {
@@ -58,14 +58,14 @@ export async function sendFeishuText({ receiveId, receiveIdType, text }) {
   });
   const data = await response.json();
   if (data.code !== 0) {
-    throw new Error(`Failed to send Feishu message: ${JSON.stringify(data)}`);
+    throw new Error("FEISHU_SEND_FAILED");
   }
   return data;
 }
 
 export async function sendCustomBotText(text) {
   if (!config.feishu.customBotWebhook) {
-    throw new Error("Missing FEISHU_CUSTOM_BOT_WEBHOOK");
+    throw new Error("FEISHU_WEBHOOK_NOT_CONFIGURED");
   }
 
   const payload = {
@@ -87,7 +87,7 @@ export async function sendCustomBotText(text) {
   });
   const data = await response.json();
   if (data.code && data.code !== 0) {
-    throw new Error(`Failed to send custom bot message: ${JSON.stringify(data)}`);
+    throw new Error("FEISHU_WEBHOOK_SEND_FAILED");
   }
   return data;
 }

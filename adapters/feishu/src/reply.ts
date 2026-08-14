@@ -1,3 +1,4 @@
+import { validateInsightReplyUserVisibleContent } from "@paopao/contracts";
 import type { ClaimedExternalDelivery } from "@paopao/core";
 
 const CONTROL_TEXT = {
@@ -14,6 +15,7 @@ export function renderDeliveryText(delivery: ClaimedExternalDelivery): string {
   const payload = delivery.payload;
   if (payload.kind === "capture_ack") return "已保存。";
   if (payload.kind === "control") return CONTROL_TEXT[payload.replyCode];
+  if (!validateInsightReplyUserVisibleContent(payload.reply)) return "洞察暂不可用，请在泡泡中重新生成。";
 
   const lines = [payload.reply.text];
   if (payload.reply.nextAction) lines.push(`下一步：${payload.reply.nextAction.title}`);

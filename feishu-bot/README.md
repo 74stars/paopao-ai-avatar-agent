@@ -1,5 +1,7 @@
 # 泡泡飞书机器人 MVP 骨架
 
+> 生命周期：legacy historical implementation。该 HTTP/JSONL 骨架不进入当前运行路径；当前实验性实现位于 `adapters/feishu/`，产品范围决策见 `docs/adr/0004-defer-feishu-post-mvp.md`。
+
 这是“泡泡数字超我”的第一版工程骨架。
 
 它现在做三件事：
