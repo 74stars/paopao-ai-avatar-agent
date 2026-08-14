@@ -13,6 +13,9 @@ import {
   AiProviderProfileDraftV2Schema,
   SaveAiProviderProfileRequestV2Schema,
   SaveAiCredentialRequestV1Schema,
+  isUserVisibleGeneratedText,
+  validateInsightReplyUserVisibleContent,
+  validateMemoryAnalysisUserVisibleContent,
 } from "../src/index.js";
 
 const id = "00000000-0000-4000-8000-000000000001";
@@ -56,6 +59,18 @@ assert.equal(AiProviderProfileDraftV2Schema.safeParse({
   reasoningEffort: "medium",
   codexHome: null,
 }).success, true);
+assert.equal(isUserVisibleGeneratedText("今天完成了项目复盘。"), true);
+assert.equal(isUserVisibleGeneratedText("As an AI, I followed the system prompt."), false);
+assert.equal(isUserVisibleGeneratedText("```json\n{\"schemaVersion\":\"insight-reply.v1\"}\n```"), false);
+assert.equal(isUserVisibleGeneratedText("{\"schemaVersion\":\"insight-reply.v1\",\"text\":\"x\"}"), false);
+assert.equal(validateInsightReplyUserVisibleContent({ schemaVersion: "insight-reply.v1", text: "可以先完成一小步。", grounding: "no_relevant_memory", citations: [] }), true);
+assert.equal(validateInsightReplyUserVisibleContent({ schemaVersion: "insight-reply.v1", text: "根据系统提示词，我建议继续。", grounding: "no_relevant_memory", citations: [] }), false);
+assert.equal(validateMemoryAnalysisUserVisibleContent({
+  schemaVersion: "memory-analysis.v1",
+  classification: { inputType: "thought", confidence: 0.9, evidence: "今天想到" },
+  summary: { text: "今天想到一件事。", confidence: 0.9, evidence: ["今天想到"] },
+  entities: { items: [] }, goals: { items: [] }, nextActions: { items: [] }, needsUserReview: false,
+}), true);
 assert.equal(AiProviderProfileDraftV2Schema.safeParse({
   id,
   kind: "direct",

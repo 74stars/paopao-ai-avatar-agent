@@ -1,4 +1,4 @@
-import { MemoryAnalysisV1Schema, validateAnalysisEvidence, type ClaimedJobV1, type ErrorCode, type MemoryAnalysisV1 } from "@paopao/contracts";
+import { MemoryAnalysisV1Schema, validateAnalysisEvidence, validateMemoryAnalysisUserVisibleContent, type ClaimedJobV1, type ErrorCode, type MemoryAnalysisV1 } from "@paopao/contracts";
 import type { JobExecutionResult, JobPreflight } from "@paopao/core";
 import type { SqliteAnalysisUnitOfWork } from "../database/analysis-unit-of-work.js";
 import { sanitizedFailure, sanitizedProviderMessage } from "./error-mapping.js";
@@ -50,7 +50,7 @@ export class ProcessingService {
         prompts: this.#prompts,
         input: initialInput,
         parse: parseAnalysis,
-        accept: (analysis) => validateAnalysisEvidence(currentText, analysis),
+        accept: (analysis) => validateAnalysisEvidence(currentText, analysis) && validateMemoryAnalysisUserVisibleContent(analysis),
         signal
       });
     } catch (error) {

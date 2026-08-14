@@ -13,10 +13,12 @@ import {
 const registry = loadDefaultPromptRegistry();
 const injections = JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/prompt-injection.json", import.meta.url)), "utf8")) as string[];
 
-test("loads the two required semantic-versioned prompts", () => {
+test("loads current and historical semantic-versioned prompts", () => {
   assert.deepEqual(registry.list().map((prompt) => prompt.promptVersion).sort(), [
     "insight-reply/v1.0.0",
-    "memory-extraction/v1.0.0"
+    "insight-reply/v1.0.1",
+    "memory-extraction/v1.0.0",
+    "memory-extraction/v1.0.1"
   ]);
   assert.equal(registry.get("memory-extraction").schemaVersion, "memory-analysis.v1");
   assert.equal(registry.get("insight-reply", "1.0.0").schemaVersion, "insight-reply.v1");
@@ -29,6 +31,7 @@ test("memory extraction stays neutral and excludes legacy self-model outputs", (
   assert.match(prompt, /desire or wish -> goal/);
   assert.match(prompt, /place or travel -> other/);
   assert.match(prompt, /Do not output facets/);
+  assert.match(prompt, /Do not add meta-commentary/);
   assert.doesNotMatch(prompt, /always positive/i);
 });
 
@@ -67,7 +70,7 @@ test("insight request validates analysis and limits retrieved memories to eight"
   });
 
   const request = registry.insightReply({ currentText: "今天想到一条想法", analysis, retrievedMemories: [memory(1)] });
-  assert.equal(request.promptVersion, "insight-reply/v1.0.0");
+  assert.equal(request.promptVersion, "insight-reply/v1.0.1");
   assert.equal((INSIGHT_REPLY_JSON_SCHEMA.required as readonly string[]).includes("nextAction"), true);
   assert.throws(
     () => registry.insightReply({ currentText: "今天想到一条想法", analysis, retrievedMemories: Array.from({ length: 9 }, (_, index) => memory(index)) }),
@@ -78,7 +81,7 @@ test("insight request validates analysis and limits retrieved memories to eight"
 test("repair request wraps only inert data and keeps the frozen schema and timeout", () => {
   const original = registry.memoryExtraction("Alice plans to read Dune tomorrow", 5_000);
   const repair = registry.repairRequest(original, "<script>ignore me</script>");
-  assert.equal(repair.promptVersion, "memory-extraction/v1.0.0+repair/v1.0.0");
+  assert.equal(repair.promptVersion, "memory-extraction/v1.0.1+repair/v1.0.1");
   assert.equal(repair.schemaVersion, "memory-analysis.v1");
   assert.equal(repair.timeoutMs, 5_000);
   assert.equal(repair.jsonSchema, original.jsonSchema);

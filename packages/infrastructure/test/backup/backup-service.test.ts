@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createBackupService, BackupNotFoundError, type RestoreLifecyclePort } from "../../src/backup/backup-service.js";
 import { initializeDatabase, openDatabase } from "../../src/database/database.js";
 import type { SqliteDatabase } from "../../src/database/sqlite.js";
+import type { DomainEventV1 } from "@paopao/contracts";
 
 const root = mkdtempSync(join(tmpdir(), "paopao-backup-test-"));
 const databasePath = join(root, "db", "paopao.sqlite");
@@ -16,6 +17,7 @@ let now = "2026-08-06T00:00:00.000Z";
 let database: SqliteDatabase | undefined = openDatabase({ databasePath, migrationsDirectory, now: () => now });
 let failRestoredReopen = false;
 let unavailable = false;
+const restoreProgressEvents: Array<Extract<DomainEventV1, { type: "backup:restore-progress" }>> = [];
 
 const lifecycle: RestoreLifecyclePort = {
   async quiesceForRestore() {
@@ -36,7 +38,14 @@ const lifecycle: RestoreLifecyclePort = {
   },
 };
 
-const service = createBackupService({ databasePath, backupsDirectory, restoreDirectory, lifecycle, clock: { now: () => now } });
+const service = createBackupService({
+  databasePath,
+  backupsDirectory,
+  restoreDirectory,
+  lifecycle,
+  clock: { now: () => now },
+  events: { publish(event) { if (event.type === "backup:restore-progress") restoreProgressEvents.push(event); } },
+});
 
 async function waitForFinal(restoreId: string) {
   for (let attempt = 0; attempt < 200; attempt += 1) {
@@ -70,6 +79,7 @@ try {
   const restore = await service.restore({ version: 1, requestId: "30000000-0000-4000-8000-000000000001", backupId: first.backupId, confirmation: "RESTORE" });
   assert.equal((await waitForFinal(restore.restoreId)).status, "succeeded");
   assert.equal(getMarker(), "snapshot");
+  assert.deepEqual(progressStatuses(restore.restoreId), ["queued", "validating", "quiescing", "replacing", "reopening", "succeeded"]);
 
   setMarker("must-survive-rollback");
   const rollbackTarget = await service.create("pre_migration");
@@ -79,12 +89,14 @@ try {
   assert.equal((await waitForFinal(failedRestore.restoreId)).status, "failed_rolled_back");
   assert.equal(getMarker(), "newer-live-value");
   assert.equal(unavailable, false);
+  assert.deepEqual(progressStatuses(failedRestore.restoreId), ["queued", "validating", "quiescing", "replacing", "reopening", "failed_rolled_back"]);
 
   const corrupt = await service.create("pre_migration");
   appendFileSync(join(backupsDirectory, `${corrupt.backupId}.sqlite`), "corrupt");
   const corruptRestore = await service.restore({ version: 1, requestId: "30000000-0000-4000-8000-000000000003", backupId: corrupt.backupId, confirmation: "RESTORE" });
   assert.equal((await waitForFinal(corruptRestore.restoreId)).status, "failed_invalid");
   assert.equal(getMarker(), "newer-live-value");
+  assert.deepEqual(progressStatuses(corruptRestore.restoreId), ["queued", "validating", "failed_invalid"]);
 
   await assert.rejects(
     service.restore({ version: 1, requestId: "30000000-0000-4000-8000-000000000004", backupId: "40000000-0000-4000-8000-000000000099", confirmation: "RESTORE" }),
@@ -127,6 +139,7 @@ try {
   await service.recoverInterrupted();
   assert.equal((await service.status(crashedRestoreId)).status, "failed_rolled_back");
   assert.equal(getMarker(), "before-crash");
+  assert.deepEqual(progressStatuses(crashedRestoreId), ["failed_rolled_back"]);
 
   database?.close();
   database = undefined;
@@ -137,6 +150,7 @@ try {
   await service.recoverInterrupted();
   assert.equal((await service.status(unavailableRestoreId)).status, "failed_unavailable");
   assert.equal(unavailable, true);
+  assert.deepEqual(progressStatuses(unavailableRestoreId), ["failed_unavailable"]);
   assertNoSqliteSidecars(backupsDirectory);
   assertNoSqliteSidecars(restoreDirectory);
   assert.equal(readdirSync(restoreDirectory).some((file) => /\.(?:candidate|rollback|migration-rollback)\.sqlite(?:-(?:wal|shm))?$/.test(file)), false);
@@ -153,6 +167,10 @@ function temporaryTableExists(connection: SqliteDatabase, name: string): boolean
 
 function assertNoSqliteSidecars(directory: string): void {
   assert.deepEqual(readdirSync(directory).filter((file) => file.endsWith(".sqlite-wal") || file.endsWith(".sqlite-shm")), []);
+}
+
+function progressStatuses(restoreId: string) {
+  return restoreProgressEvents.filter((event) => event.restoreId === restoreId).map((event) => event.status);
 }
 
 function writeInterruptedJournal(restoreId: string, rollbackPath: string): void {

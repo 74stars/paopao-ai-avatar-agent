@@ -51,7 +51,7 @@ test("repairs malformed raw JSON exactly once through the registry prompt", asyn
   assert.equal(provider.calls.length, 2);
 
   const repairInput = provider.calls[1];
-  assert.equal(repairInput.promptVersion, "memory-extraction/v1.0.0+repair/v1.0.0");
+  assert.equal(repairInput.promptVersion, "memory-extraction/v1.0.1+repair/v1.0.1");
   assert.equal(repairInput.schemaVersion, "memory-analysis.v1");
   assert.equal(repairInput.timeoutMs, input.timeoutMs);
   assert.match(repairInput.systemPrompt, /The previous response failed validation/);

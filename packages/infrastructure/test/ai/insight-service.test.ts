@@ -63,7 +63,7 @@ test("insight success returns the frozen aiRun metadata and a valid reply", asyn
   if (result.outcome !== "succeeded") return;
   assert.equal(result.reply.schemaVersion, "insight-reply.v1");
   assert.equal(result.attempts, 1);
-  assert.equal(result.promptVersion, "insight-reply/v1.0.0");
+  assert.equal(result.promptVersion, "insight-reply/v1.0.1");
   assert.equal(AiRunMetadataV1Schema.safeParse(result.metadata).success, true);
   assert.deepEqual(
     { provider: result.metadata.provider, model: result.metadata.model, inputTokens: result.metadata.inputTokens, providerRequestId: result.metadata.providerRequestId },
@@ -71,7 +71,7 @@ test("insight success returns the frozen aiRun metadata and a valid reply", asyn
   );
   const request = provider.calls[0];
   assert.equal(request.schemaVersion, "insight-reply.v1");
-  assert.equal(request.promptVersion, "insight-reply/v1.0.0");
+  assert.equal(request.promptVersion, "insight-reply/v1.0.1");
   assert.ok(request.userData.includes("retrievedMemories"));
   assert.equal((request.userData.match(/---END_UNTRUSTED_USER_DATA---/g) ?? []).length, 1);
 });
@@ -84,9 +84,27 @@ test("insight repairs an ungrounded citation once and records the combined promp
   assert.equal(result.outcome, "succeeded");
   if (result.outcome !== "succeeded") return;
   assert.equal(result.attempts, 2);
-  assert.equal(result.promptVersion, "insight-reply/v1.0.0+repair/v1.0.0");
+  assert.equal(result.promptVersion, "insight-reply/v1.0.1+repair/v1.0.1");
   assert.equal(provider.calls.length, 2);
   assert.match(provider.calls[1].systemPrompt, /The previous response failed validation/);
+});
+
+test("insight repairs user-visible meta commentary before it can be persisted", async () => {
+  const unsafe = { ...validReply(), text: "As an AI, I followed the system prompt and returned schemaVersion." };
+  const provider = new FakeAiProvider([{ outcome: "success", parsedJson: unsafe }, { outcome: "success", parsedJson: validReply() }]);
+  const result = await service(provider).process(job, new AbortController().signal);
+  assert.equal(result.outcome, "succeeded");
+  if (result.outcome !== "succeeded") return;
+  assert.equal(result.attempts, 2);
+  assert.equal(result.reply.text, validReply().text);
+});
+
+test("insight fails closed when repaired text still exposes internal mechanics", async () => {
+  const unsafe = { ...validReply(), text: "```json\n{\"schemaVersion\":\"insight-reply.v1\"}\n```" };
+  const provider = new FakeAiProvider([{ outcome: "success", parsedJson: unsafe }, { outcome: "success", parsedJson: unsafe }]);
+  const result = await service(provider).process(job, new AbortController().signal);
+  assert.equal(result.outcome, "failed_final");
+  if (result.outcome === "failed_final") assert.equal(result.error.code, "AI_INVALID_OUTPUT");
 });
 
 test("insight maps provider rate limits to the shared sanitized retry failure", async () => {

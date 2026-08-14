@@ -44,8 +44,10 @@ const EXPECTED_SCHEMA: Record<PromptId, RegisteredPrompt["schemaVersion"]> = {
 
 const DEFAULT_PROMPT_FILES: ReadonlyArray<{ id: PromptId | "repair"; version: string; relativePath: string }> = [
   { id: "memory-extraction", version: "1.0.0", relativePath: "memory-extraction/v1.0.0.json" },
+  { id: "memory-extraction", version: "1.0.1", relativePath: "memory-extraction/v1.0.1.json" },
   { id: "insight-reply", version: "1.0.0", relativePath: "insight-reply/v1.0.0.json" },
-  { id: "repair", version: "1.0.0", relativePath: "repair/v1.0.0.json" }
+  { id: "insight-reply", version: "1.0.1", relativePath: "insight-reply/v1.0.1.json" },
+  { id: "repair", version: "1.0.1", relativePath: "repair/v1.0.1.json" }
 ];
 const UNTRUSTED_DATA_START = "---BEGIN_UNTRUSTED_USER_DATA---\n";
 const UNTRUSTED_DATA_END = "\n---END_UNTRUSTED_USER_DATA---";

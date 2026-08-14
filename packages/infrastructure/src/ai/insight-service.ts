@@ -1,4 +1,4 @@
-import { InsightReplyV1Schema, validateInsightReplyAgainstMemories, type ClaimedJobV1, type InsightReplyV1, type MemoryAnalysisV1, type RetrievedMemoryV1 } from "@paopao/contracts";
+import { InsightReplyV1Schema, validateInsightReplyAgainstMemories, validateInsightReplyUserVisibleContent, type ClaimedJobV1, type InsightReplyV1, type MemoryAnalysisV1, type RetrievedMemoryV1 } from "@paopao/contracts";
 import type { JobExecutionResult, JobPreflight, SanitizedFailureV1 } from "@paopao/core";
 import { sanitizedFailure, sanitizedProviderMessage } from "./error-mapping.js";
 import { DEFAULT_AI_TIMEOUT_MS, PromptRegistry } from "./prompt-registry.js";
@@ -67,7 +67,7 @@ export class InsightProcessingService {
         prompts: this.#prompts,
         input: initialInput,
         parse: parseInsightReply,
-        accept: (reply) => validateInsightReplyAgainstMemories(reply, context.retrievedMemories),
+        accept: (reply) => validateInsightReplyAgainstMemories(reply, context.retrievedMemories) && validateInsightReplyUserVisibleContent(reply),
         signal
       });
     } catch (error) {

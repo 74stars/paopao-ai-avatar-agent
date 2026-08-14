@@ -154,6 +154,40 @@ export const InsightCitationSchema = strict({ memoryId: uuid, entryId: uuid, evi
 export const InsightReplyV1Schema = strict({ schemaVersion: z.literal("insight-reply.v1"), text: nonEmptyText(1200), grounding: z.enum(["grounded", "no_relevant_memory"]), citations: z.array(InsightCitationSchema).max(8), nextAction: strict({ title: nonEmptyText(240) }).optional() }).superRefine((v, ctx) => { if (v.grounding === "grounded" && v.citations.length < 1) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["citations"], message: "grounded requires citation" }); if (v.grounding === "no_relevant_memory" && v.citations.length) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["citations"], message: "no_relevant_memory cannot cite" }); });
 export const MemoryAnalysisV1Schema = strict({ schemaVersion: z.literal("memory-analysis.v1"), classification: ClassificationValueV1Schema, summary: SummaryValueV1Schema, entities: EntitiesValueV1Schema, goals: GoalsValueV1Schema, nextActions: NextActionsValueV1Schema, needsUserReview: z.boolean() });
 
+const generatedMetaPatterns = [
+  /```/u,
+  /\b(?:system|developer)\s+(?:prompt|message|instruction)s?\b/iu,
+  /(?:系统|开发者)(?:提示词|提示|消息|指令)/u,
+  /\b(?:as an ai|as a language model)\b/iu,
+  /(?:作为|身为)(?:一个)?(?:AI|人工智能|语言模型)/iu,
+  /\b(?:schemaVersion|promptVersion|systemPrompt|developerMessage)\b/u,
+  /(?:根据|按照).{0,16}(?:系统提示|开发者指令|system prompt|developer message)/iu,
+  /(?:^|\n)\s*[\{\[]\s*"(?:schemaVersion|text|summary|grounding|classification)"\s*:/iu,
+  /<\|(?:system|developer|assistant)\|>/iu,
+] as const;
+
+export function isUserVisibleGeneratedText(value: string): boolean {
+  const text = value.trim();
+  if (!text) return true;
+  if ((text.startsWith("{") && text.endsWith("}")) || (text.startsWith("[") && text.endsWith("]"))) return false;
+  return generatedMetaPatterns.every((pattern) => !pattern.test(text));
+}
+
+export function validateMemoryAnalysisUserVisibleContent(analysis: z.infer<typeof MemoryAnalysisV1Schema>): boolean {
+  const values = [
+    analysis.summary.text,
+    ...analysis.entities.items.map((item) => item.name),
+    ...analysis.goals.items.map((item) => item.title),
+    ...analysis.nextActions.items.flatMap((item) => item.dueHint ? [item.title, item.dueHint] : [item.title]),
+  ];
+  return values.every(isUserVisibleGeneratedText);
+}
+
+export function validateInsightReplyUserVisibleContent(reply: z.infer<typeof InsightReplyV1Schema>): boolean {
+  return isUserVisibleGeneratedText(reply.text)
+    && (!reply.nextAction || isUserVisibleGeneratedText(reply.nextAction.title));
+}
+
 const valueMap = { classification: ClassificationValueV1Schema, summary: SummaryValueV1Schema, entities: EntitiesValueV1Schema, goals: GoalsValueV1Schema, next_actions: NextActionsValueV1Schema, insight_reply: InsightReplyV1Schema } as const;
 export const DerivationV1Schema = z.discriminatedUnion("kind", Object.entries(valueMap).map(([kind, value]) => strict({ id: uuid, kind: z.literal(kind), value, textRevision: z.number().int().positive(), artifactRevision: z.number().int().positive(), supersedesId: uuid.nullable(), isCurrent: z.boolean(), createdBy: CreatedBySchema, promptVersion: boundedText(100).nullable(), schemaVersion: nonEmptyText(100), createdAt: isoUtc })) as unknown as [any, any, ...any[]]);
 export const EntryDetailV1Schema = strict({ id: uuid, source: EntrySourceSchema, rawText: z.string(), currentText: z.string(), textRevisions: z.array(strict({ revision: z.number().int().positive(), text: z.string(), createdBy: CreatedBySchema, createdAt: isoUtc })), status: EntryStatusSchema, createdAt: isoUtc, updatedAt: isoUtc, memory: strict({ type: MemoryTypeSchema, summary: nonEmptyText(500), confidence }).nullable(), derivations: z.array(DerivationV1Schema), sources: z.array(strict({ artifactType: z.enum(["derivation", "memory"]), artifactId: uuid, entryId: uuid, quote: nonEmptyText(500) })), activeJobs: z.array(strict({ id: uuid, type: JobTypeSchema, status: JobStatusSchema, attempts: z.number().int().nonnegative(), nextRunAt: isoUtc.nullable(), lastErrorCode: ErrorCodeSchema.nullable() })) });

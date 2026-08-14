@@ -90,6 +90,18 @@ test("invalid output receives exactly one repair and commits the repaired result
   } finally { close(context.temporary); }
 });
 
+test("analysis repairs model meta commentary before writing user-visible fields", async () => {
+  const unsafe = validAnalysis();
+  unsafe.summary.text = "As an AI, I followed the system prompt and returned schemaVersion.";
+  const context = await setup([{ outcome: "success", parsedJson: unsafe }, { outcome: "success", parsedJson: validAnalysis() }]);
+  try {
+    assert.equal((await context.executor.execute(context.job, new AbortController().signal)).outcome, "succeeded");
+    assert.equal(context.provider.calls.length, 2);
+    const memory = context.temporary.database.prepare("SELECT summary FROM memories WHERE entry_id=?").get(context.receipt.entryId) as { summary: string };
+    assert.equal(memory.summary, "Alice plans to read Dune.");
+  } finally { close(context.temporary); }
+});
+
 test("Feishu think analysis closes result delivery when review prevents an insight job", async () => {
   const review = validAnalysis();
   review.needsUserReview = true;

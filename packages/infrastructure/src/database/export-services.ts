@@ -9,6 +9,12 @@ import {
   ExportCreateRequestV1Schema,
   ExportReceiptV1Schema,
   ExportStatusV1Schema,
+  EntitiesValueV1Schema,
+  GoalsValueV1Schema,
+  InsightReplyV1Schema,
+  NextActionsValueV1Schema,
+  isUserVisibleGeneratedText,
+  validateInsightReplyUserVisibleContent,
   type ClaimedJobV1,
   type DomainEventV1,
 } from "@paopao/contracts";
@@ -190,17 +196,101 @@ export class CreateDiagnosticsExportJobExecutor extends FileJobExecutor {
 export function createExportJobExecutor(d: { database: SqliteDatabase; outputDirectory: string; clock: Clock; appVersion?: string; events?: DomainEventPublisher }) { return new CreateExportJobExecutor(d.database, d.outputDirectory, d.clock, d.events, d.appVersion); }
 export function createDiagnosticsJobExecutor(d: { database: SqliteDatabase; outputDirectory: string; clock: Clock; appVersion?: string; readEvents: (since: string) => readonly unknown[]; sensitiveValues?: () => readonly string[]; events?: DomainEventPublisher }) { return new CreateDiagnosticsExportJobExecutor(d.database, d.outputDirectory, d.clock, d.readEvents, d.sensitiveValues ?? (() => []), d.events, d.appVersion); }
 
-function exportRecords(database: SqliteDatabase): any[] {
-  const entries = database.prepare(`SELECT e.id,e.source,e.capture_mode,e.created_at,e.updated_at,e.current_text_revision,r.text,m.memory_type,m.summary
+type ExportEntryRow = { id: string; source: "desktop" | "feishu"; capture_mode: "remember" | "think"; created_at: string; updated_at: string; text: string; memory_type: "diary" | "thought" | "person" | "reading" | "goal" | "other" | null; summary: string | null };
+type ExportVersionRow = { revision: number; text: string; created_at: string };
+type ExportDerivationRow = { kind: string; value_json: string };
+type UserExportEntryV1 = {
+  id: string;
+  source: ExportEntryRow["source"];
+  mode: ExportEntryRow["capture_mode"];
+  createdAt: string;
+  updatedAt: string;
+  text: string;
+  originalText: string;
+  category: ExportEntryRow["memory_type"];
+  summary: string | null;
+  versions: Array<{ number: number; text: string; createdAt: string }>;
+  organized: {
+    entities: Array<{ type: string; name: string }>;
+    goals: string[];
+    nextActions: Array<{ title: string; dueHint: string | null }>;
+    insight: { text: string; nextAction: string | null; evidenceQuotes: string[] } | null;
+  };
+  evidenceQuotes: string[];
+};
+
+function exportRecords(database: SqliteDatabase): UserExportEntryV1[] {
+  const entries = database.prepare(`SELECT e.id,e.source,e.capture_mode,e.created_at,e.updated_at,r.text,m.memory_type,m.summary
     FROM entries e JOIN entry_text_revisions r ON r.entry_id=e.id AND r.revision=e.current_text_revision
-    LEFT JOIN memories m ON m.entry_id=e.id WHERE e.status NOT IN ('deleting','purged') ORDER BY e.created_at,e.id`).all();
-  return (entries as any[]).map((entry) => ({ ...entry,
-    revisions: database.prepare("SELECT revision,text,created_by,created_at FROM entry_text_revisions WHERE entry_id=? ORDER BY revision").all(entry.id),
-    derivations: (database.prepare("SELECT id,kind,value_json,text_revision,artifact_revision,supersedes_id,is_current,created_by,created_at FROM derivations WHERE entry_id=? ORDER BY created_at,id").all(entry.id) as any[]).map((row) => ({ ...row, value: JSON.parse(row.value_json), value_json: undefined })),
-    sources: database.prepare("SELECT artifact_type,artifact_id,quote FROM artifact_sources WHERE entry_id=? ORDER BY artifact_type,artifact_id,quote").all(entry.id),
-  }));
+    LEFT JOIN memories m ON m.entry_id=e.id WHERE e.status NOT IN ('deleting','purged') ORDER BY e.created_at,e.id`).all() as ExportEntryRow[];
+  return entries.map((entry) => {
+    const versions = database.prepare("SELECT revision,text,created_at FROM entry_text_revisions WHERE entry_id=? ORDER BY revision").all(entry.id) as ExportVersionRow[];
+    const evidenceRows = database.prepare("SELECT DISTINCT quote FROM artifact_sources WHERE entry_id=? ORDER BY quote").all(entry.id) as Array<{ quote: string }>;
+    return {
+      id: entry.id,
+      source: entry.source,
+      mode: entry.capture_mode,
+      createdAt: entry.created_at,
+      updatedAt: entry.updated_at,
+      text: entry.text,
+      originalText: versions[0]?.text ?? entry.text,
+      category: entry.memory_type,
+      summary: entry.summary && isUserVisibleGeneratedText(entry.summary) ? entry.summary : null,
+      versions: versions.map((version) => ({ number: version.revision, text: version.text, createdAt: version.created_at })),
+      organized: exportOrganizedData(database, entry.id),
+      evidenceQuotes: evidenceRows.map((row) => row.quote),
+    };
+  });
 }
-function markdownEntry(item: any): string { return `# ${item.summary ?? item.id}\n\n${item.text}\n\n- Type: ${item.memory_type ?? "unclassified"}\n- Source: ${item.source}\n- Created: ${item.created_at}\n`; }
+
+function exportOrganizedData(database: SqliteDatabase, entryId: string): UserExportEntryV1["organized"] {
+  const organized: UserExportEntryV1["organized"] = { entities: [], goals: [], nextActions: [], insight: null };
+  const rows = database.prepare("SELECT kind,value_json FROM derivations WHERE entry_id=? AND is_current=1 ORDER BY created_at,id").all(entryId) as ExportDerivationRow[];
+  for (const row of rows) {
+    let candidate: unknown;
+    try { candidate = JSON.parse(row.value_json) as unknown; } catch { continue; }
+    if (row.kind === "entities") {
+      const parsed = EntitiesValueV1Schema.safeParse(candidate);
+      if (parsed.success) organized.entities = parsed.data.items.filter((item) => isUserVisibleGeneratedText(item.name)).map((item) => ({ type: item.type, name: item.name }));
+    } else if (row.kind === "goals") {
+      const parsed = GoalsValueV1Schema.safeParse(candidate);
+      if (parsed.success) organized.goals = parsed.data.items.map((item) => item.title).filter(isUserVisibleGeneratedText);
+    } else if (row.kind === "next_actions") {
+      const parsed = NextActionsValueV1Schema.safeParse(candidate);
+      if (parsed.success) organized.nextActions = parsed.data.items.filter((item) => isUserVisibleGeneratedText(item.title) && (!item.dueHint || isUserVisibleGeneratedText(item.dueHint))).map((item) => ({ title: item.title, dueHint: item.dueHint }));
+    } else if (row.kind === "insight_reply") {
+      const parsed = InsightReplyV1Schema.safeParse(candidate);
+      if (parsed.success && validateInsightReplyUserVisibleContent(parsed.data)) organized.insight = { text: parsed.data.text, nextAction: parsed.data.nextAction?.title ?? null, evidenceQuotes: parsed.data.citations.map((citation) => citation.evidenceQuote) };
+    }
+  }
+  return organized;
+}
+
+function markdownEntry(item: UserExportEntryV1): string {
+  const lines = [
+    `# ${recordTitle(item)}`,
+    "",
+    item.text,
+    "",
+    `- 分类：${categoryLabel(item.category)}`,
+    `- 记录入口：${item.source === "desktop" ? "桌面端" : "飞书"}`,
+    `- 记录时间：${item.createdAt}`,
+  ];
+  if (item.originalText !== item.text) lines.push("", "## 原始记录", "", item.originalText);
+  if (item.organized.goals.length > 0) lines.push("", "## 目标", "", ...item.organized.goals.map((goal) => `- ${goal}`));
+  if (item.organized.nextActions.length > 0) lines.push("", "## 下一步", "", ...item.organized.nextActions.map((action) => `- ${action.title}${action.dueHint ? `（${action.dueHint}）` : ""}`));
+  return `${lines.join("\n")}\n`;
+}
+
+function recordTitle(item: UserExportEntryV1): string {
+  const candidate = item.summary ?? item.text;
+  return Array.from(candidate.trim().split(/\r?\n/u)[0] || "记录").slice(0, 80).join("");
+}
+
+function categoryLabel(category: UserExportEntryV1["category"]): string {
+  if (category === null) return "未分类";
+  return ({ diary: "日记", thought: "思想", person: "人物", reading: "阅读", goal: "目标", other: "其他" } as const)[category];
+}
 function asExport(job: ClaimedJobV1): ExportJob { if (job.type !== "create_export") throw new Error("Wrong job type"); return job; }
 function asDiagnostics(job: ClaimedJobV1): DiagnosticJob { if (job.type !== "create_diagnostics_export") throw new Error("Wrong job type"); return job; }
 async function emit(events: DomainEventPublisher | undefined, event: DomainEventV1) { try { await events?.publish(event); } catch {} }

@@ -14,7 +14,7 @@ const migrationsDirectory = fileURLToPath(new URL("../../src/database/migrations
 const now = "2026-08-07T00:00:00.000Z";
 const clock = { now: () => now };
 
-test("JSON/Markdown exports use controlled relative paths, manifests and SHA-256 while excluding deleted entries", async () => {
+test("JSON/Markdown exports use a public field whitelist while excluding deleted entries", async () => {
   for (const format of ["json", "markdown"] as const) {
     const temporary = createTemporaryDatabase({ migrationsDirectory, now: clock.now });
     try {
@@ -41,6 +41,19 @@ test("JSON/Markdown exports use controlled relative paths, manifests and SHA-256
       const content = readFileSync(join(outputDirectory, status.path, "entries.json"), "utf8");
       assert.equal(content.includes("Visible export body"), true);
       assert.equal(content.includes("DELETED_EXPORT_SECRET"), false);
+      const payload = JSON.parse(content) as { version: number; entries: Array<Record<string, unknown>> };
+      assert.equal(payload.version, 1);
+      assert.equal(payload.entries.length, 1);
+      assert.deepEqual(Object.keys(payload.entries[0]!).sort(), ["category", "createdAt", "evidenceQuotes", "id", "mode", "organized", "originalText", "source", "summary", "text", "updatedAt", "versions"]);
+      for (const internalName of ["value_json", "text_revision", "artifact_revision", "supersedes_id", "is_current", "created_by", "derivations", "sources"]) {
+        assert.equal(content.includes(internalName), false, `must not export internal field ${internalName}`);
+      }
+      if (format === "markdown") {
+        const markdown = readFileSync(join(outputDirectory, status.path, "entries", `${live.entryId}.md`), "utf8");
+        assert.match(markdown, /记录入口：桌面端/);
+        assert.match(markdown, /记录时间：/);
+        assert.doesNotMatch(markdown, /- Type:|- Source:|- Created:/);
+      }
       const manifestContent = readFileSync(join(outputDirectory, status.path, "manifest.json"), "utf8");
       assert.equal(createHash("sha256").update(manifestContent).digest("hex"), status.sha256);
       const manifest = JSON.parse(manifestContent);

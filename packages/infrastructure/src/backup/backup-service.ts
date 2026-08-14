@@ -17,6 +17,7 @@ import {
   BackupSummaryV1Schema,
   type BackupRestoreStatusV1,
 } from "@paopao/contracts";
+import type { DomainEventPublisher } from "@paopao/core";
 import { currentSchemaVersion } from "../database/migrations.js";
 import { checkpointDatabase, openSqlite, type SqliteDatabase } from "../database/sqlite.js";
 
@@ -87,6 +88,7 @@ export function createBackupService(dependencies: {
   currentSchemaVersion?: number;
   minimumSchemaVersion?: number;
   ids?: { next(): string };
+  events?: DomainEventPublisher;
 }): BackupService & {
   create(reason: BackupReason): Promise<BackupSummary>;
   createStartupIfDue(): Promise<BackupSummary | null>;
@@ -107,6 +109,7 @@ class FileBackupService implements BackupService {
   readonly #currentVersion: number;
   readonly #minimumVersion: number;
   readonly #ids: { next(): string };
+  readonly #events?: DomainEventPublisher;
 
   constructor(dependencies: {
     databasePath: string;
@@ -117,6 +120,7 @@ class FileBackupService implements BackupService {
     currentSchemaVersion?: number;
     minimumSchemaVersion?: number;
     ids?: { next(): string };
+    events?: DomainEventPublisher;
   }) {
     this.#databasePath = resolve(dependencies.databasePath);
     this.#backupsDirectory = resolve(dependencies.backupsDirectory);
@@ -127,6 +131,7 @@ class FileBackupService implements BackupService {
     this.#currentVersion = dependencies.currentSchemaVersion ?? CURRENT_DATABASE_SCHEMA_VERSION;
     this.#minimumVersion = dependencies.minimumSchemaVersion ?? MINIMUM_DATABASE_SCHEMA_VERSION;
     this.#ids = dependencies.ids ?? { next: randomUUID };
+    this.#events = dependencies.events;
     mkdirSync(this.#backupsDirectory, { recursive: true });
     mkdirSync(this.#restoreDirectory, { recursive: true });
   }
@@ -228,6 +233,7 @@ class FileBackupService implements BackupService {
     journal.activeRestoreId = restoreId;
     journal.operations[restoreId] = record;
     this.#writeJournal(journal);
+    await this.#publishRestoreProgress(record);
     queueMicrotask(() => void this.#runRestore(restoreId, manifest));
     return { restoreId, backupId: command.backupId, status: "queued" };
   }
@@ -256,10 +262,10 @@ class FileBackupService implements BackupService {
       }
       this.#validateFile(this.#databasePath);
       await this.#lifecycle.resumeAfterDatabaseOpen("rolled_back");
-      this.#updateRestore(restoreId, "failed_rolled_back", "RESTORE_FAILED", { active: false });
+      await this.#updateRestore(restoreId, "failed_rolled_back", "RESTORE_FAILED", { active: false });
     } catch {
       await this.#lifecycle.remainUnavailable("RESTORE_FAILED");
-      this.#updateRestore(restoreId, "failed_unavailable", "RESTORE_FAILED", { active: false });
+      await this.#updateRestore(restoreId, "failed_unavailable", "RESTORE_FAILED", { active: false });
     } finally {
       if (record.candidatePath) {
         this.#assertRestoreArtifact(record.candidatePath, restoreId, "candidate");
@@ -273,32 +279,32 @@ class FileBackupService implements BackupService {
     const rollbackPath = join(this.#restoreDirectory, `${restoreId}.rollback.sqlite`);
     let quiesced = false;
     try {
-      this.#updateRestore(restoreId, "validating", null, { candidatePath });
+      await this.#updateRestore(restoreId, "validating", null, { candidatePath });
       const backupPath = this.#safeBackupPath(manifest);
       copyFileSync(backupPath, candidatePath);
       if (sha256File(candidatePath) !== manifest.sha256) throw new BackupInvalidError();
       this.#validateFile(candidatePath, true);
 
-      this.#updateRestore(restoreId, "quiescing", null, { candidatePath, rollbackPath });
+      await this.#updateRestore(restoreId, "quiescing", null, { candidatePath, rollbackPath });
       await this.#lifecycle.quiesceForRestore();
       quiesced = true;
       await this.create("pre_restore");
 
-      this.#updateRestore(restoreId, "replacing", null, { candidatePath, rollbackPath });
+      await this.#updateRestore(restoreId, "replacing", null, { candidatePath, rollbackPath });
       this.#moveDatabaseFiles(this.#databasePath, rollbackPath);
       this.#moveDatabaseFiles(candidatePath, this.#databasePath);
-      this.#updateRestore(restoreId, "reopening", null, { rollbackPath });
+      await this.#updateRestore(restoreId, "reopening", null, { rollbackPath });
       this.#validateFile(this.#databasePath);
       await this.#lifecycle.resumeAfterDatabaseOpen("restored");
-      this.#updateRestore(restoreId, "succeeded", null, { active: false });
+      await this.#updateRestore(restoreId, "succeeded", null, { active: false });
       this.#removeDatabaseFiles(rollbackPath);
     } catch (error) {
       if (error instanceof BackupInvalidError || error instanceof BackupNotFoundError) {
-        this.#updateRestore(restoreId, "failed_invalid", "BACKUP_INVALID", { active: false });
+        await this.#updateRestore(restoreId, "failed_invalid", "BACKUP_INVALID", { active: false });
         return;
       }
       if (!quiesced) {
-        this.#updateRestore(restoreId, "failed_rolled_back", "RESTORE_FAILED", { active: false });
+        await this.#updateRestore(restoreId, "failed_rolled_back", "RESTORE_FAILED", { active: false });
         return;
       }
       try {
@@ -307,10 +313,10 @@ class FileBackupService implements BackupService {
         }
         this.#validateFile(this.#databasePath);
         await this.#lifecycle.resumeAfterDatabaseOpen("rolled_back");
-        this.#updateRestore(restoreId, "failed_rolled_back", "RESTORE_FAILED", { active: false });
+        await this.#updateRestore(restoreId, "failed_rolled_back", "RESTORE_FAILED", { active: false });
       } catch {
         await this.#lifecycle.remainUnavailable("RESTORE_FAILED");
-        this.#updateRestore(restoreId, "failed_unavailable", "RESTORE_FAILED", { active: false });
+        await this.#updateRestore(restoreId, "failed_unavailable", "RESTORE_FAILED", { active: false });
       }
     } finally {
       this.#removeDatabaseFiles(candidatePath);
@@ -446,19 +452,29 @@ class FileBackupService implements BackupService {
     this.#writeJsonAtomic(this.#journalPath, journal);
   }
 
-  #updateRestore(
+  async #updateRestore(
     restoreId: string,
     status: RestoreRecord["status"],
     errorCode: RestoreRecord["errorCode"],
     extra: { active?: boolean; rollbackPath?: string; candidatePath?: string } = {},
-  ): void {
+  ): Promise<void> {
     const journal = this.#readJournal();
     const current = journal.operations[restoreId];
     if (!current) throw new Error("Restore operation was not found");
     const { active: _active, ...persistedExtra } = extra;
-    journal.operations[restoreId] = { ...current, ...persistedExtra, status, errorCode, updatedAt: this.#clock.now() };
+    const updated = { ...current, ...persistedExtra, status, errorCode, updatedAt: this.#clock.now() };
+    journal.operations[restoreId] = updated;
     if (extra.active === false) journal.activeRestoreId = null;
     this.#writeJournal(journal);
+    await this.#publishRestoreProgress(updated);
+  }
+
+  async #publishRestoreProgress(record: RestoreRecord): Promise<void> {
+    try {
+      await this.#events?.publish({ version: 1, type: "backup:restore-progress", restoreId: record.restoreId, status: record.status, occurredAt: record.updatedAt });
+    } catch {
+      // Restore state is persisted authority; progress events only invalidate readers.
+    }
   }
 
   #writeJsonAtomic(path: string, value: unknown): void {
