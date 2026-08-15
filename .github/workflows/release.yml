@@ -23,7 +23,9 @@ permissions:
   attestations: write
 
 concurrency:
-  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  # Distinct group name: a run hung in an older workflow file (run 11, queued
+  # behind an unbounded wait) must not serialize this workflow for hours.
+  group: release-github-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 env:
