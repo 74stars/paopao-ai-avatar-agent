@@ -43,7 +43,19 @@ jobs:
       - run: npm run test:evals
       - run: xvfb-run -a npm run test:e2e:preview
       - run: npm run build
-      - run: xvfb-run -a npm run smoke:preload:runtime
+      - name: Run sandbox preload smoke
+        shell: bash
+        run: |
+          xvfb-run -a npm run smoke:preload:runtime 2>&1 | tee /tmp/preload-smoke.log
+          exit ${PIPESTATUS[0]}
+      - name: Surface preload smoke failure log
+        if: failure()
+        shell: bash
+        run: |
+          if [ -s /tmp/preload-smoke.log ]; then
+            msg=$(tail -60 /tmp/preload-smoke.log | sed 's/%/%25/g; s///g' | awk '{printf "%%0A%s", $0}')
+            echo "::error title=preload smoke failed::$msg"
+          fi
 
   windows-native-smoke:
     runs-on: windows-latest
