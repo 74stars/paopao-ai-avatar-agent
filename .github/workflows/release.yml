@@ -99,7 +99,18 @@ jobs:
       - run: npm run test:unit
       - run: npm run rebuild:native:node
       - run: npm run test --workspace=@paopao/infrastructure
-      - run: npm run test:integration --workspaces --if-present
+      - name: Feishu adapter integration: adapter
+        run: npx tsx --test --test-concurrency=1 test/adapter.test.ts
+        working-directory: adapters/feishu
+      - name: Feishu adapter integration: message
+        run: npx tsx --test --test-concurrency=1 test/message.test.ts
+        working-directory: adapters/feishu
+      - name: Feishu adapter integration: reply
+        run: npx tsx --test --test-concurrency=1 test/reply.test.ts
+        working-directory: adapters/feishu
+      - name: Feishu adapter integration: SDK transport
+        run: npx tsx --test --test-concurrency=1 test/sdk-transport.test.ts
+        working-directory: adapters/feishu
       - run: npm run test:g3
       - run: npm run test:evals
       - run: xvfb-run -a npm run test:e2e:preview
