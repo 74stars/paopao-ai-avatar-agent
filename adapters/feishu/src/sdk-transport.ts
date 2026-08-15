@@ -188,7 +188,9 @@ class OfficialFeishuTransport implements FeishuTransport {
         this.#rejectReadiness(timeout);
         this.#wsClient?.close({ force: true });
       }, this.#readinessTimeoutMs);
-      this.#readinessTimer.unref?.();
+      // NOTE: the readiness and send timers must stay ref'd. Under Node 22 the test
+      // runner and short-lived processes can drain the event loop while only
+      // unref'd timers are pending, which cancels readiness/send guarantees.
     });
   }
 
@@ -242,7 +244,6 @@ class OfficialFeishuTransport implements FeishuTransport {
         timeout = setTimeout(() => {
           reject(new TransportError("FEISHU_NOT_CONNECTED", true, "unknown"));
         }, this.#sendTimeoutMs);
-        timeout.unref?.();
       });
       // Promise.race installs handlers on the provider promise, so a late provider
       // resolve/reject after our timeout is absorbed while the ledger stays ambiguous.
