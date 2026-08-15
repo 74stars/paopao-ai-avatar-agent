@@ -25,6 +25,20 @@
 | `mac-arm64/泡泡.app` | 目录 | — | arm64 | electron-builder 展开暂存，安装验证后清理 |
 | `mac/泡泡.app` | 目录 | — | x64 | electron-builder 展开暂存，安装验证后清理 |
 
+
+## 0b. Windows x64 NSIS 候选（2026-08-15 第三批次）
+
+> 来源：`v0.1.0` tag（`15571a4`）对应源码，本机 macOS arm64 上 electron-builder 交叉构建
+> 签名：未签名（无 Windows 证书，`signAndEditExecutable=false`）；结构验证通过（PE32+ x64 DLL 已正确打入 asar.unpacked）
+> 构建命令：`ELECTRON_MIRROR=... ELECTRON_BUILDER_BINARIES_MIRROR=... npx electron-builder --win nsis --x64 -c.npmRebuild=false -c.win.signAndEditExecutable=false`（better-sqlite3 使用 npmmirror 的 electron-v140-win32-x64 预编译二进制预置）
+
+| 文件 | Bytes | SHA-256 | 架构 | 状态 |
+| --- | ---: | --- | --- | --- |
+| `Paopao-Setup-0.1.0.exe` | 152,724,043 | `81c9afef9b1fbf8d3ff250c12e3a38d5c1db0091f8e2c84a41f72deaac81308a` | x64 | 内部候选，待签名 |
+| `Paopao-Setup-0.1.0.exe.blockmap` | 159,520 | — | x64 | 更新元数据 |
+| `win-unpacked/泡泡.exe` | 目录 | — | x64 | 展开暂存，验证后清理 |
+
+> 注意：正式 Windows 候选以 release workflow 的 `windows-package` 作业为准（在 windows-latest 干净 runner 上构建并执行安装/卸载矩阵）。
 ## 1. 当前候选
 
 顶层安装/更新文件生成于 2026-08-09，版本 `0.1.0`，早于当前 `main@962213f` 和未提交工作树。它们不能证明当前源码状态。
