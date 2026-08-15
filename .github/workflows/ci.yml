@@ -43,6 +43,10 @@ jobs:
       - run: npm run test:evals
       - run: xvfb-run -a npm run test:e2e:preview
       - run: npm run build
+      - name: Fix Electron SUID sandbox for Linux runner
+        run: |
+          sudo chown root:root node_modules/electron/dist/chrome-sandbox || true
+          sudo chmod 4755 node_modules/electron/dist/chrome-sandbox || true
       - name: Run sandbox preload smoke
         shell: bash
         run: |
