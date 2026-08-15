@@ -380,11 +380,16 @@ jobs:
         with:
           ref: ${{ env.RELEASE_TAG }}
           lfs: false
-      - uses: actions/download-artifact@v4
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
         with:
-          pattern: paopao-${{ env.RELEASE_TAG }}-*
+          name: paopao-${{ env.RELEASE_TAG }}-windows-x64
           path: release-assets
-          merge-multiple: true
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: paopao-${{ env.RELEASE_TAG }}-macos-x64-arm64
+          path: release-assets
       - name: Verify platform checksums and generate aggregate checksums
         shell: bash
         run: |
@@ -408,7 +413,7 @@ jobs:
           gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | while IFS= read -r asset; do
             test -z "$asset" || gh release delete-asset "$RELEASE_TAG" "$asset" --yes
           done
-          gh release upload "$RELEASE_TAG" release-assets/*
+          find release-assets -maxdepth 1 -type f -print0 | xargs -0 gh release upload "$RELEASE_TAG"
           find release-assets -maxdepth 1 -type f -exec basename {} \; | sort > local-assets.txt
           gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | sort > remote-assets.txt
           diff -u local-assets.txt remote-assets.txt
