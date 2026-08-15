@@ -39,6 +39,26 @@
 | `win-unpacked/泡泡.exe` | 目录 | — | x64 | 展开暂存，验证后清理 |
 
 > 注意：正式 Windows 候选以 release workflow 的 `windows-package` 作业为准（在 windows-latest 干净 runner 上构建并执行安装/卸载矩阵）。
+
+## 0c. 远程 Linux 原生构建候选与冒烟矩阵（2026-08-15）
+
+> 远程机：admin@10.126.126.1（Ubuntu 24.04 x86_64，32 核），源码 rsync 自本机（commit `bf5d91f`）
+> 环境：node v22.14.0、npm 11.8.0、git-lfs 3.6.1、xvfb、wine 9.0（仅 NSIS 需要）
+
+### Linux 冒烟（xvfb-run）
+
+- `npm run smoke:preload:runtime`：PASS（退出码 0，sandbox preload runtime smoke passed）。
+- `npm run test:e2e:preview`：PASS（6/6 用例，report `test-results/preview-accessibility/2026-08-15T15-25-46-194Z/report.json`）。
+- 注：GitHub Linux runner 上该冒烟需要 `chrome-sandbox` SUID 修复（`sudo chown root:root && sudo chmod 4755`），见 ci.yml 步骤。
+
+### Windows x64 NSIS（Linux 原生 electron-builder）
+
+| 文件 | Bytes | SHA-256 | 架构 | 状态 |
+| --- | ---: | --- | --- | --- |
+| `Paopao-Setup-0.1.0.exe` | 152,783,053 | `6e94072c5b3a29372b93d65d297411d5265641ff24de13554ecab6e2856161fc` | x64 | 内部候选，待签名 |
+| `Paopao-Setup-0.1.0.exe.blockmap` | 159,358 | — | x64 | 更新元数据 |
+
+完整报告见 `tmp/REMOTE-REPORT.md`（gitignored 工作产物）。
 ## 1. 当前候选
 
 顶层安装/更新文件生成于 2026-08-09，版本 `0.1.0`，早于当前 `main@962213f` 和未提交工作树。它们不能证明当前源码状态。
