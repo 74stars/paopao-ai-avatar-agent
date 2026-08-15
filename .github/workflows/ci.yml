@@ -55,7 +55,20 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run test:e2e
+      - name: Run Windows Wave 4 E2E
+        shell: pwsh
+        run: |
+          npm run test:e2e 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\wave4-e2e.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Surface Windows E2E failure log
+        if: failure()
+        shell: bash
+        run: |
+          f="$RUNNER_TEMP/wave4-e2e.log"
+          if [ -s "$f" ]; then
+            msg=$(tail -80 "$f" | sed 's/%/%25/g; s/\r//g' | awk '{printf "%%0A%s", $0}')
+            echo "::error title=Windows Wave4 E2E failed::$msg"
+          fi
       - run: npm run dist:win
       - run: npm run smoke:preload:runtime
       - uses: actions/upload-artifact@v4
@@ -93,7 +106,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:e2e
-      - run: npm run dist:mac
+      - name: Run macOS dist
+        shell: bash
+        run: |
+          npm run dist:mac 2>&1 | tee /tmp/dist-mac.log
+          exit ${PIPESTATUS[0]}
+      - name: Surface macOS dist failure log
+        if: failure()
+        shell: bash
+        run: |
+          if [ -s /tmp/dist-mac.log ]; then
+            msg=$(tail -80 /tmp/dist-mac.log | sed 's/%/%25/g; s/\r//g' | awk '{printf "%%0A%s", $0}')
+            echo "::error title=dist:mac failed::$msg"
+          fi
       - run: npm run smoke:preload:runtime
       - uses: actions/upload-artifact@v4
         if: always()
