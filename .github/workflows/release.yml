@@ -388,7 +388,13 @@ jobs:
           mount_point="$RUNNER_TEMP/paopao-dmg"
           install_root="$RUNNER_TEMP/PaopaoApplications"
           cleanup_smoke() {
-            if test -n "$app_pid"; then kill "$app_pid" >/dev/null 2>&1 || true; wait "$app_pid" >/dev/null 2>&1 || true; fi
+            if test -n "$app_pid"; then
+              kill "$app_pid" >/dev/null 2>&1 || true
+              for _ in $(seq 1 30); do kill -0 "$app_pid" 2>/dev/null || break; sleep 1; done
+              kill -9 "$app_pid" >/dev/null 2>&1 || true
+              wait "$app_pid" >/dev/null 2>&1 || true
+              app_pid=""
+            fi
             if test "$mounted" = true; then hdiutil detach "$mount_point" >/dev/null 2>&1 || true; fi
             rm -rf "$mount_point" "$install_root"
           }
@@ -414,8 +420,10 @@ jobs:
           sleep 10
           kill -0 "$app_pid"
           test -e "$user_data/db/paopao.sqlite"
-          kill "$app_pid"
-          wait "$app_pid" || true
+          kill "$app_pid" 2>/dev/null || true
+          for _ in $(seq 1 30); do kill -0 "$app_pid" 2>/dev/null || break; sleep 1; done
+          kill -9 "$app_pid" 2>/dev/null || true
+          wait "$app_pid" 2>/dev/null || true
           app_pid=""
           rm -rf "$installed_app"
           test ! -e "$installed_app"
