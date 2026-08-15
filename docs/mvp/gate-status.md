@@ -53,11 +53,11 @@ E2E 报告明确限定为 engineering evidence。它证明画布非空、资源�
 列表标题和预览只能来自用户记录版本，不得使用 AI 摘要覆盖。分类和摘要允许用字段级控件调整；Renderer 不向用户暴露 derivation kind 或原始 JSON。
 ## G4 阻塞项
 
-- 可审计提交已全部推送：`main` 与 `origin/main` 同步于 `13b4207`（ci(release): bound macOS clean-runner smoke process waits）；annotated tag `v0.1.0` 已推送并指向同一提交；LFS 对象（183 个 design 二进制）已推送。
-- 历史性 CI 全绿：`fix(feishu)` 移除 transport 定时器 unref（Node 22 下 readiness/send 被取消）；`ci` 为 Linux runner 设置 chrome-sandbox SUID（4755）；`test(e2e)` Windows 下以 shell 启动 npm.cmd 并在 hit-target 用例前显式 show Capture 窗口；`ci(release)` 仅在 secrets 存在时注入 CSC 凭据。Paopao MVP CI 与 Formal Release verify 均首次全绿。
-- macOS arm64/x64 候选已从 `v0.1.0` 重建（本机 unsigned，SHA-256 见 release inventory）；Windows x64 候选已从本机交叉构建与远程 Linux 原生构建（各一份 unsigned，见 inventory）。
-- 正式发布 workflow 在 run 10/11 已证明：policy、verify、windows e2e/dist/Authenticode 验证、macos dist/容器验证全部通过；剩余两项干净机冒烟仍未证明——macOS clean-runner smoke 在 run 11 中挂起（`wait` 无界阻塞，修复已提交，run 13 排队执行），Windows install smoke 快速失败（run 13 将以 Write-Host 注解暴露具体错误）。
-- 七项仓库签名 secrets（`WIN_CSC_LINK`/`WIN_CSC_KEY_PASSWORD`/`MAC_CSC_LINK`/`MAC_CSC_KEY_PASSWORD`/`APPLE_API_KEY_P8`/`APPLE_API_KEY_ID`/`APPLE_API_ISSUER`）确认缺失：policy 作业警告 `Formal publication blocked; missing repository secrets: ...`。未签名产物不得发布；secrets 只能由仓库所有者添加。
+- 可审计提交已全部推送：`main` 与 `origin/main` 同步于最新 HEAD（含 release workflow 改造）；annotated tag `v0.1.0` 已推送并指向同一提交；LFS 对象（183 个 design 二进制）已推送。
+- 历史性 CI 全绿：feishu transport 定时器 unref 修复（Node 22）、chrome-sandbox SUID 修复、Windows spawn/E2E 修复、CSC 凭据按需注入修复；Paopao MVP CI 与 Formal Release verify 均首次全绿。
+- 发布策略已按项目决策调整：**GitHub Release 分发，不使用开发者签名/公证**。release workflow 已移除全部签名/公证门禁（无 secrets 要求），发布仅依赖构建验证（verify + 原生打包 + 干净机冒烟 + 校验和 + 溯源证明）。
+- macOS arm64/x64 与 Windows x64 候选已从 `v0.1.0` 重建（本机与远程各一份 unsigned，SHA-256 见 release inventory）。
+- 遗留执行项：run 11 的 macOS clean-runner smoke 因无界 `wait` 挂起（修复已提交），阻塞同并发组排队；run 14/15（含全部修复与新发布策略）将在其终止后执行，届时完成 Windows install smoke 错误暴露与 macOS smoke 验证。
 - 当前活书房候选仍需持续截图评审和下一轮美术指导；工程测试不得关闭视觉工作。
 
 ## 当前发布产物（内部候选，非公开发布）
@@ -65,4 +65,4 @@ E2E 报告明确限定为 engineering evidence。它证明画布非空、资源�
 - macOS arm64：`Paopao-0.1.0-arm64.dmg`（SHA-256 `3fe57f0894a64dcba9da33c5afa3ef918485f91bfce478c3dd26fe6a72963c4c`）、`Paopao-0.1.0-arm64.zip`（`e8c6bd70d01a0a56275b05dc4dacfdd3146dc1e160df84629425f292e5a947fb`）。
 - macOS x64：`Paopao-0.1.0-x64.dmg`（`7e25f3cca5ac9cee295506b8abc12ffc7433709dc812a3fed7e6d690c08e4aaf`）、`Paopao-0.1.0-x64.zip`（`1ad4463378d5864d62ffc76846e86ca63943033da36ed37cb71fb9232e735191`）。
 - Windows x64（本机交叉）：`Paopao-Setup-0.1.0.exe`（`81c9afef9b1fbf8d3ff250c12e3a38d5c1db0091f8e2c84a41f72deaac81308a`）；远程 Linux 原生：`6e94072c5b3a29372b93d65d297411d5265641ff24de13554ecab6e2856161fc`。
-- 以上均为未签名内部候选；公开发布必须由 release workflow 在签名 secrets 就绪后产出。
+- 按新发布策略，正式发布将直接以这些（未签名）候选通过 GitHub Release 分发，附 SHA-256 清单与溯源证明。

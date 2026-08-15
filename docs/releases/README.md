@@ -1,30 +1,24 @@
 # Release operations
 
-The formal release workflow is `.github/workflows/release.yml`. It builds native Windows and macOS artifacts from an existing annotated version tag.
+The formal release workflow is `.github/workflows/release.yml`. It builds native Windows and macOS artifacts from an existing annotated version tag and publishes them as a GitHub Release.
 
-## Required repository secrets
+## Distribution policy
 
-The workflow cannot attempt a formal GitHub Release unless all seven secrets exist; presence alone is not proof, and native jobs must still emit positive signature/notarization verification outputs:
-
-| Secret | Purpose |
-| --- | --- |
-| `WIN_CSC_LINK` | Base64 data or secure URL for the Windows Authenticode PFX/P12 certificate |
-| `WIN_CSC_KEY_PASSWORD` | Password for the Windows signing certificate |
-| `MAC_CSC_LINK` | Base64 data or secure URL for the Apple Developer ID Application certificate |
-| `MAC_CSC_KEY_PASSWORD` | Password for the macOS signing certificate |
-| `APPLE_API_KEY_P8` | Contents of the App Store Connect API private key |
-| `APPLE_API_KEY_ID` | App Store Connect API key ID |
-| `APPLE_API_ISSUER` | App Store Connect API issuer UUID |
-
-The App Store Connect key must have permission to submit notarization requests. Secrets are passed only to their native package jobs and are never uploaded as artifacts.
+- **Channel**: GitHub Releases. Every attached asset is verified against a deterministic SHA-256 manifest and covered by a GitHub build-provenance attestation.
+- **Signing**: the project intentionally does not use developer signing (Apple Developer ID / notarization, Windows Authenticode). The workflow therefore has no signing-secret requirements. `SIGNING-VERIFICATION-win.txt` / `SIGNING-VERIFICATION-mac.txt` record the actual (unsigned) signature status as evidence.
+- **Verification before publication**: the release must pass the full verify gate, both native package jobs (build + Wave 4 E2E + container/installer checks), and the clean-runner install/uninstall (Windows) and mount/launch/removal (macOS) smokes.
 
 ## Publication policy
 
 1. Use an annotated tag matching every package version, for example `v0.1.0`.
-2. The Windows job verifies the installer and exact installed application signature, performs a silent NSIS install, waits for the SQLite readiness marker, then uninstalls.
-3. The macOS job verifies both x64 and arm64 unpacked apps, DMGs and ZIP contents; each DMG is notarized and stapled separately. The runner-native DMG is mounted, launched to SQLite readiness and removed.
-4. If credentials are absent, unsigned candidates are retained only when packaging and candidate smoke/checksum validation complete; the workflow then fails at `publication-blocked`, and no GitHub Release is created. Credential presence never sets the native `verified` outputs.
-5. Publication requires both native `verified=true` outputs. A draft is populated and exact asset names are checked before publication; an existing non-draft release is immutable.
-6. The final checksum manifest and provenance attestation cover every attached asset, including signing/install evidence and platform manifests.
+2. `policy` verifies the tag is annotated, matches the checked-out HEAD, and matches every package version (`scripts/verify-release.mjs`).
+3. `verify` runs the full Linux check suite and confirms archived v4/v4.1 resources are absent from the build.
+4. `windows-package` builds the NSIS installer, runs the Wave 4 E2E, records the (unsigned) Authenticode status, and runs a silent install -> SQLite readiness -> launch -> uninstall smoke on a clean runner.
+5. `macos-package` builds x64 and arm64 DMG/ZIP, verifies both containers' structure and architectures, and runs a clean-runner mount -> launch -> SQLite readiness -> removal smoke.
+6. `publish` downloads both platform artifacts, verifies the platform checksums, generates the aggregate `SHA256SUMS.txt`, attaches build provenance, and creates/updates an immutable GitHub Release only after the native `verified` outputs are true.
+7. Unsigned artifacts are expected by policy; they are still integrity-verified via checksums and attestation.
 
-Unsigned or unnotarized artifacts are internal candidates. They must never be described as a formal release.
+## Tag re-runs
+
+- Re-pushing the same annotated tag re-triggers the workflow. If the tag points at a new commit (force-push), the new run uses the workflow file at that commit.
+- A GitHub Release is immutable once published; re-runs only replace assets while the release is still a draft.
