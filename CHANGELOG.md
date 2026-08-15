@@ -4,6 +4,10 @@ All notable user-facing changes are recorded here.
 
 ## [0.1.0] - 2026-08-15
 
+Released as Paopao v0.1.0 on GitHub Releases (unsigned by project policy; assets
+covered by SHA-256 manifests, clean-runner install/uninstall smokes and build
+provenance attestations): https://github.com/74stars/paopao-ai-avatar-agent/releases/tag/v0.1.0
+
 ### Added
 
 - Local-first text capture with durable SQLite storage and persistent background jobs.

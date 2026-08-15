@@ -4,7 +4,7 @@
 > 基线：`main@962213f`，`origin/main@c08fa15`
 > 生命周期：dated worktree snapshot；动态状态以 `git status` 和 [`docs/mvp/gate-status.md`](../mvp/gate-status.md) 为准
 > 状态：盘点结果；不代表提交边界，不授权删除文件
-> 后续状态：`v0.1.0` 收敛阶段已按 [legacy removal manifest](../design/2026-08-15-legacy-library-removal-manifest.md) 显式移除旧 v4/v4.1 批次；本文件保留删除前快照语义
+> 后续状态：`v0.1.0` 收敛已完成：按 [legacy removal manifest](../design/2026-08-15-legacy-library-removal-manifest.md) 移除旧 v4/v4.1 批次，全部差异已按领域拆分为可审计提交并推送，`v0.1.0` 已通过 GitHub Release 正式发布（见 [gate-status](../mvp/gate-status.md)）；本文件保留收敛前快照语义
 > 用途：在保留现有工作树的前提下，按领域审阅、验证和拆分提交
 
 ## 1. 快照摘要

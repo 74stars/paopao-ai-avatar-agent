@@ -45,7 +45,7 @@ npm run dist:mac
 - `npm run icons:check --workspace=paopao-desktop` 检查格式、尺寸和多尺寸容器；正式封装前会自动执行。
 - 应用产品名固定为“泡泡”，Windows 使用 `com.paopao.desktop` 作为 AppUserModelID；开发模式的任务管理器仍可能显示 Electron 宿主进程名。
 
-仓库已具备未签名安装包的构建配置。对外发布前仍需配置 Windows 代码签名，以及 macOS Developer ID 签名、公证和 Stapling。
+仓库已具备未签名安装包的构建配置。发布策略为 GitHub Release 分发（不使用开发者签名/公证）；正式发布由 `.github/workflows/release.yml` 执行，详见 [Release operations](../docs/releases/README.md)。
 
 ## 数据与隐私
 

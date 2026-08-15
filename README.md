@@ -18,6 +18,15 @@
 
 它依据可追溯的记录形成整理和洞察；用户可以编辑记录、调整分类与摘要、删除并导出自己的数据。
 
+## 发布与下载
+
+Paopao v0.1.0（第一个桌面 MVP 正式版）已通过 GitHub Release 发布：
+
+- 下载地址：https://github.com/74stars/paopao-ai-avatar-agent/releases/tag/v0.1.0
+- 平台资产：Windows x64 NSIS 安装包（`Paopao-Setup-0.1.0.exe`）、macOS arm64/x64 DMG 与 ZIP。
+- 分发策略：GitHub Release 分发，未签名（无开发者签名/公证）；每个资产均附 SHA-256 清单、安装/卸载冒烟证据与构建溯源证明，请核对 `SHA256SUMS.txt` 后再安装。
+- 发布与验证细节见 [Release operations](docs/releases/README.md) 与 [v0.1.0 release notes](docs/releases/v0.1.0.md)。
+
 ## 快速体验
 
 在线预览：
@@ -73,7 +82,7 @@ flowchart LR
 
 - 本地“文字输入 -> 本地存储 -> 持久化任务 -> 自动整理 -> 活书房”闭环已通过自动化验证。
 - 搜索、整理依据、分类与摘要调整、记录版本、删除、导出、备份恢复和 AI 服务配置已经接入。
-- 可复现 Git/LFS 基线和正式 release workflow 已在本地建立；当前发布 Gate 是远端 push/tag、Windows/macOS 干净 runner、真实签名和 Apple 公证验证。
+- 可复现 Git/LFS 基线和正式 release workflow 已建立；v0.1.0 已发布（GitHub Release 分发，未签名），后续版本沿用同一门禁：远端 push/tag、Windows/macOS 干净 runner 构建与安装/卸载矩阵、SHA-256 清单与构建溯源证明。
 - 截图和交互检查只提供工程证据；每轮实际画面继续输出下一轮美术指导，不设置软件意义上的美术 PASS。
 - 飞书连接器移至 MVP 后增量；现有代码保留，但真实租户验收和正式产品化延期。
 - 语音、图片、链接、文件、日报和周报在 MVP 验收后按真实需求扩展。

@@ -43,9 +43,10 @@
 - [产品需求审核](./reviews/2026-08-15-product-requirements-review.md)
 - [工作树变更清单](./reviews/2026-08-15-worktree-change-manifest.md)：按领域记录当前 dirty diff、归因边界和拆分顺序。
 - [项目收敛与清理计划](./PROJECT-CONVERGENCE.md)
-- [Release operations](./releases/README.md)：正式签名发布门禁、所需 secrets 与不可变发布策略。
-- [v0.1.0 release notes](./releases/v0.1.0.md)：仅在 tag workflow 全部门禁通过后用于正式发布。
+- [Release operations](./releases/README.md)：GitHub Release 分发的发布门禁、未签名策略与不可变发布规则。
+- [v0.1.0 release notes](./releases/v0.1.0.md)：v0.1.0 已发布，附下载与验收说明。
 - [Desktop Release 目录清单](./releases/2026-08-15-desktop-release-inventory.md)：旧内部候选、哈希与轮转记录。
+- [远程构建验证报告](./releases/2026-08-15-remote-build-report.md)：Linux 冒烟与 Windows 交叉构建记录。
 
 状态文档只记录可核对事实。截图和自动报告证明工程完整性，不产生美术 PASS/FAIL。
 

@@ -1,7 +1,7 @@
 # Paopao 项目收敛与清理计划
 
 > 建立日期：2026-08-15
-> 当前阶段：Phase 5，桌面产品与资源收敛已完成，正在形成 `v0.1.0` 可重建发布基线
+> 当前阶段：Phase 6，`v0.1.0` 已正式发布（GitHub Release 分发，未签名），收尾清理与文档固化完成
 > 原则：保护用户改动、先证明引用再删除、生产资产与过程资产分离、可再生物不进入版本库
 
 ## 1. 当前状态摘要
@@ -17,10 +17,10 @@
 | 路径 | 扫除后体量 | 初步分类 |
 | --- | ---: | --- |
 | `node_modules/` | 962MB | 可再生依赖，开发期间保留 |
-| `desktop-app/release/` | 273MB | 仅保留已记录 SHA-256 的 DMG/ZIP 与 blockmap，展开暂存目录已删除 |
+| `desktop-app/release/` | 已清空 | 正式候选由 GitHub Release 承载（v0.1.0，17 个资产）；本地暂存与旧候选已按轮转规则删除 |
 | `desktop-app/design/` | 396MB | 生产母版、评审和生成过程；PNG/WebP 由 Git LFS 管理，禁止直接整目录清理 |
-| `test-results/` | 37MB | 保留当前成功、最近失败、静态设计和 Preview 证据 |
-| `tmp/` | 17MB | 5 个已有正式副本的重复文件已删除，其余 28 个独有生图输入待归档决策 |
+| `test-results/` | 31MB | 只保留文档引用与每类最新一次报告，更早重复运行已轮转 |
+| `tmp/` | 17MB | 仅剩 `imagegen/` 独有生图输入（待归档决策）；工具残留（git-lfs-install 等）已删除 |
 | `desktop-app/public/assets/` | 29MB | 运行与部署资源；旧 v4/v4.1 和未引用顶层资源已按清单删除 |
 | `assets/` | 1.9MB | 根 README 和历史截图，需区分当前展示与历史原型 |
 | `preview/assets/` | 492KB | 在线预览运行资源 |

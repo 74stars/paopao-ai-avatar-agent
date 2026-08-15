@@ -2,8 +2,8 @@
 
 > 盘点日期：2026-08-15
 > 生命周期：dated artifact inventory
-> 目录：`desktop-app/release/`，扫除后约 273MB
-> 结论：仅保留作内部历史候选；不可视为当前提交的可重建公开发布物
+> 目录：`desktop-app/release/`（正式发布后已清空，见第 9 节）
+> 当前状态：Paopao v0.1.0 已通过 GitHub Release 正式发布；本文档保留各批内部候选的 SHA-256 与轮转记录
 
 ## 0. 从可重建提交生成的新候选（2026-08-15 第二批次）
 
@@ -99,3 +99,10 @@
 3. 新 arm64 候选通过安装验证并完成外部归档后，才可删除 2026-08-09 的 DMG/ZIP 与 blockmap。
 4. 展开应用、中间目录和 builder 调试文件不长期保留；本轮已完成清理。
 5. 不把 `release/` 加入提交；发布物应由 CI 或明确的外部制品库管理。
+
+## 9. 正式发布与本地清退（2026-08-15）
+
+- **Paopao v0.1.0 已正式发布**：https://github.com/74stars/paopao-ai-avatar-agent/releases/tag/v0.1.0（17 个资产，含 Windows/macOS 安装包、校验和、签名状态与安装冒烟证据；分发策略为 GitHub Release、未签名）。
+- 本地 `desktop-app/release/`（约 2.3GB，含本机重建候选与 electron-builder 展开暂存）已按轮转规则清空：正式候选由 GitHub Release 承载，SHA-256 已在本文档第 0/0b/0c 节留存。
+- `tmp/REMOTE-REPORT.md` 已迁入版本库：`docs/releases/2026-08-15-remote-build-report.md`。
+- `test-results/` 已轮转：每类只保留文档引用与最新报告（e2e-wave4 ×2、e2e-ai-provider ×1、preview-accessibility ×2）。
