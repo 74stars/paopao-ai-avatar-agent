@@ -13,7 +13,7 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:integration": "tsx --test test/*.test.ts",
+    "test:integration": "tsx --test --test-concurrency=1 test/*.test.ts",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
