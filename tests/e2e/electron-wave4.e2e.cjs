@@ -834,7 +834,14 @@ function waitForHttp(url, timeoutMs) {
 
 function runCommand(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: rootDirectory, env: process.env, stdio: "inherit" });
+    const child = spawn(command, args, {
+      cwd: rootDirectory,
+      env: process.env,
+      stdio: "inherit",
+      // Windows cannot CreateProcess a .cmd/.bat directly; spawn through the
+      // shell so npm.cmd resolves (spawn EINVAL otherwise).
+      shell: process.platform === "win32"
+    });
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) resolve();
