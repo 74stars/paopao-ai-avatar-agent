@@ -19,6 +19,10 @@ All notable user-facing changes are recorded here.
 - Clarified the online Preview as an isolated simulated-data concept and closed its dialog keyboard-accessibility gaps.
 - Converged runtime resources, release evidence and design provenance; design binary media now uses Git LFS.
 
+### Fixed
+
+- Kept the Feishu SDK transport readiness and send timers ref'd so pending guarantees are not cancelled under Node 22.
+
 ### Security
 
 - Kept renderer processes sandboxed behind typed preload APIs.

@@ -5,6 +5,26 @@
 > 目录：`desktop-app/release/`，扫除后约 273MB
 > 结论：仅保留作内部历史候选；不可视为当前提交的可重建公开发布物
 
+## 0. 从可重建提交生成的新候选（2026-08-15 第二批次）
+
+> 生命周期：dated artifact inventory
+> 来源：`v0.1.0` annotated tag（`15571a4a2ac2afed0fd67adf728318c062e233ef`）本地重建，与 main 当前 HEAD 一致
+> 签名：未签名（本机无 Developer ID 证书）；仅用于可重建性、安装/卸载与结构验证
+> 构建命令：`ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run dist:mac`（本机 macOS arm64，electron-builder 26.0.12）
+
+| 文件 | Bytes | SHA-256 | 架构 | 状态 |
+| --- | ---: | --- | --- | --- |
+| `Paopao-0.1.0-arm64.dmg` | 180,553,022 | `3fe57f0894a64dcba9da33c5afa3ef918485f91bfce478c3dd26fe6a72963c4c` | arm64 | 内部候选，待签名/公证 |
+| `Paopao-0.1.0-arm64.zip` | 174,585,315 | `e8c6bd70d01a0a56275b05dc4dacfdd3146dc1e160df84629425f292e5a947fb` | arm64 | 内部候选，待签名/公证 |
+| `Paopao-0.1.0-x64.dmg` | 185,538,771 | `7e25f3cca5ac9cee295506b8abc12ffc7433709dc812a3fed7e6d690c08e4aaf` | x64 | 内部候选，待签名/公证 |
+| `Paopao-0.1.0-x64.zip` | 179,492,160 | `1ad4463378d5864d62ffc76846e86ca63943033da36ed37cb71fb9232e735191` | x64 | 内部候选，待签名/公证 |
+| `Paopao-0.1.0-arm64.dmg.blockmap` | 189,787 | — | arm64 | 更新元数据 |
+| `Paopao-0.1.0-x64.dmg.blockmap` | 194,492 | — | x64 | 更新元数据 |
+| `Paopao-0.1.0-arm64.zip.blockmap` | 179,232 | — | arm64 | 更新元数据 |
+| `Paopao-0.1.0-x64.zip.blockmap` | 186,230 | — | x64 | 更新元数据 |
+| `mac-arm64/泡泡.app` | 目录 | — | arm64 | electron-builder 展开暂存，安装验证后清理 |
+| `mac/泡泡.app` | 目录 | — | x64 | electron-builder 展开暂存，安装验证后清理 |
+
 ## 1. 当前候选
 
 顶层安装/更新文件生成于 2026-08-09，版本 `0.1.0`，早于当前 `main@962213f` 和未提交工作树。它们不能证明当前源码状态。

@@ -8,6 +8,7 @@ This index is maintained by A0. Each ADR records a decision that affects more th
 - [0003 Preload capability boundary and verifiable sandbox bundle](./0003-preload-sandbox-bundle.md)
 - [0004 Defer Feishu connector beyond MVP](./0004-defer-feishu-post-mvp.md)
 - [0005 Named AI Provider Profiles and Codex channel reuse](./0005-ai-provider-profiles-v2.md)
+- [0006 Design binary assets tracked with Git LFS](./0006-design-assets-git-lfs.md)
 
 ## Superseded In Part
 

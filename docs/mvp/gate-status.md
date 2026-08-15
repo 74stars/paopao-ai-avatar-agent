@@ -51,20 +51,24 @@ E2E 报告明确限定为 engineering evidence。它证明画布非空、资源�
 - `整理依据`：AI 结论所依据的本条记录或关联记录片段，不再称作笼统的“来源”。
 
 列表标题和预览只能来自用户记录版本，不得使用 AI 摘要覆盖。分类和摘要允许用字段级控件调整；Renderer 不向用户暴露 derivation kind 或原始 JSON。
-
 ## G4 阻塞项
 
-- 数据、Feishu、Electron、Desktop/Library、Preview、release 自动化与文档已形成可审计提交；SSH 认证和 LFS dry-run 通过，但提交/LFS 对象尚未 push，annotated tag 尚未建立。
-- 只有旧 macOS arm64 内部 DMG/ZIP；新的 macOS x64/arm64、Windows x64 和干净 runner 安装/移除证据尚未由 tag workflow 生成。
-- 正式发布自动化已建立签名、公证和发布硬门禁；七项仓库签名 secrets 是否可用仍须在远端 workflow 验证，未签名产物不得发布。
+- 可审计提交已建立并全部推送：`main` 与 `origin/main` 同步于 `15571a4`（`test(feishu): widen transport timing margins`），annotated tag `v0.1.0` 已推送且指向同一提交；LFS 对象（183 个 design 二进制）已全部推送到远端（dry-run 为空）。
+- 已从 `v0.1.0` 提交重建 macOS arm64/x64 候选（本机 unsigned，SHA-256 见 release inventory）；Windows x64 候选由远端构建机/CI 生成。
+- 正式发布 workflow（`.github/workflows/release.yml`）已在 tag push 上运行：`policy` 通过，`verify` 在 "Feishu adapter integration: SDK transport" 步骤失败（全部历史 ci/release 运行均在该步骤失败，尚未出现过绿色运行）；修复该 CI 问题前，签名/公证/干净机矩阵无法到达。
+- 七项仓库签名 secrets（`WIN_CSC_LINK`/`WIN_CSC_KEY_PASSWORD`/`MAC_CSC_LINK`/`MAC_CSC_KEY_PASSWORD`/`APPLE_API_KEY_P8`/`APPLE_API_KEY_ID`/`APPLE_API_ISSUER`）是否可用须在远端 workflow 验证；未签名产物不得发布。
 - 当前活书房候选仍需持续截图评审和下一轮美术指导；工程测试不得关闭视觉工作。
-- `test-results` 已轮转为当前 Wave 4、Provider、静态设计和 Preview 证据；release 只保留有 SHA-256 的旧内部候选；design PNG/WebP 已由 Git LFS 管理，`tmp` 独有生图输入仍按清理计划保护。
+- `test-results` 已轮转为当前 Wave 4、Provider、静态设计和 Preview 证据；design PNG/WebP 由 Git LFS 管理（ADR 0006），`tmp` 独有生图输入仍按清理计划保护。
 
-## 当前发布产物
+## 当前发布产物（内部候选，非公开发布）
 
-- `desktop-app/release/Paopao-0.1.0-arm64.dmg`
-  - SHA-256: `df5b81179419029077db4dcf52ec407347d9b901b4630fc90c9dca047c8ce300`
+- `desktop-app/release/Paopao-0.1.0-arm64.dmg`（从 `v0.1.0` 重建）
+  - SHA-256: `3fe57f0894a64dcba9da33c5afa3ef918485f91bfce478c3dd26fe6a72963c4c`
 - `desktop-app/release/Paopao-0.1.0-arm64.zip`
-  - SHA-256: `3bc3afaa98758f2b4dae47429283f0e3c40edb1bc5d1421bccfbb5f6fc864f64`
+  - SHA-256: `e8c6bd70d01a0a56275b05dc4dacfdd3146dc1e160df84629425f292e5a947fb`
+- `desktop-app/release/Paopao-0.1.0-x64.dmg`（从 `v0.1.0` 重建）
+  - SHA-256: `7e25f3cca5ac9cee295506b8abc12ffc7433709dc812a3fed7e6d690c08e4aaf`
+- `desktop-app/release/Paopao-0.1.0-x64.zip`
+  - SHA-256: `1ad4463378d5864d62ffc76846e86ca63943033da36ed37cb71fb9232e735191`
 
-这些文件是内部候选，不是公开发布版本。
+以上均为未签名内部候选（本机无 Developer ID），仅用于安装/卸载与可重建性验证；公开发布必须由 release workflow 在签名 secrets 就绪后产出。
