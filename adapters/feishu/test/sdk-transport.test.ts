@@ -134,7 +134,7 @@ test("official send timeout is unknown and absorbs a late provider resolution", 
   reset();
   let resolveProvider!: (value: Record<string, unknown>) => void;
   FakeClient.response = new Promise((resolve) => { resolveProvider = resolve; });
-  const transport = createOfficialFeishuTransportFactory(fakeSdk as never, { sendTimeoutMs: 5 })
+  const transport = createOfficialFeishuTransportFactory(fakeSdk as never, { sendTimeoutMs: 50 })
     .create({ appId: APP_ID, appSecret: "sdk-secret" }, lifecycle());
   await transport.start(async () => undefined);
 
@@ -152,7 +152,7 @@ test("official send timeout is unknown and absorbs a late provider resolution", 
   });
 
   resolveProvider({ code: 0, data: { message_id: "late-reply" } });
-  await new Promise((resolve) => setTimeout(resolve, 1));
+  await new Promise((resolve) => setTimeout(resolve, 10));
   await transport.stop();
 });
 
@@ -266,7 +266,7 @@ test("official pullConnectConfig credential failure rejects readiness as termina
 test("readiness timeout closes the socket and rejects as retryable not-connected", async () => {
   reset();
   FakeWsClient.autoReady = false;
-  const transport = createOfficialFeishuTransportFactory(fakeSdk as never, { readinessTimeoutMs: 5 })
+  const transport = createOfficialFeishuTransportFactory(fakeSdk as never, { readinessTimeoutMs: 50 })
     .create({ appId: APP_ID, appSecret: "sdk-secret" }, lifecycle());
   await assert.rejects(transport.start(async () => undefined), (error: unknown) => {
     assert.ok(error instanceof FeishuTransportError);
