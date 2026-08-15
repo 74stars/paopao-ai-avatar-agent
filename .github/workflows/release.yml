@@ -95,7 +95,13 @@ jobs:
       - run: npm run release:verify -- --tag "$RELEASE_TAG"
       - run: npm run format:check
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run test:contracts
+      - run: npm run test:unit
+      - run: npm run rebuild:native:node
+      - run: npm run test --workspace=@paopao/infrastructure
+      - run: npm run test:integration --workspaces --if-present
+      - run: npm run test:g3
+      - run: npm run test:evals
       - run: xvfb-run -a npm run test:e2e:preview
       - run: npm run build
       - run: npm run icons:check --workspace=paopao-desktop
