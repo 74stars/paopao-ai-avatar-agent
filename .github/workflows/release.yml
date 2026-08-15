@@ -127,8 +127,6 @@ jobs:
     outputs:
       verified: ${{ steps.verification.outputs.verified }}
     env:
-      CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-      CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
       CREDENTIALS_PRESENT: ${{ needs.policy.outputs.credentials_present }}
     steps:
       - uses: actions/checkout@v4
@@ -140,6 +138,12 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Configure Windows signing credentials
+        if: ${{ needs.policy.outputs.credentials_present == 'true' }}
+        shell: pwsh
+        run: |
+          "CSC_LINK=${{ secrets.WIN_CSC_LINK }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "CSC_KEY_PASSWORD=${{ secrets.WIN_CSC_KEY_PASSWORD }}" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Run Windows Wave 4 E2E
         shell: pwsh
         run: |
@@ -181,36 +185,42 @@ jobs:
       - name: Clean-runner install, launch and uninstall smoke
         shell: pwsh
         run: |
-          $installer = (Get-ChildItem desktop-app/release/Paopao-Setup-*.exe | Select-Object -First 1).FullName
-          $installDir = Join-Path $env:RUNNER_TEMP "PaopaoInstall"
-          $dataDir = Join-Path $env:RUNNER_TEMP "PaopaoUserData"
-          $appPath = Join-Path $installDir "泡泡.exe"
-          $launched = $false
           try {
-            $install = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installDir") -Wait -PassThru
-            if ($install.ExitCode -ne 0) { throw "Installer exited $($install.ExitCode)" }
-            if (-not (Test-Path $appPath)) { throw "Expected installed executable not found: $appPath" }
-            if ($env:CREDENTIALS_PRESENT -eq "true") {
-              $appSignature = Get-AuthenticodeSignature $appPath
-              if ($appSignature.Status -ne "Valid") { throw "Installed application signature is $($appSignature.Status)" }
+            $installer = (Get-ChildItem desktop-app/release/Paopao-Setup-*.exe | Select-Object -First 1).FullName
+            $installDir = Join-Path $env:RUNNER_TEMP "PaopaoInstall"
+            $dataDir = Join-Path $env:RUNNER_TEMP "PaopaoUserData"
+            $appPath = Join-Path $installDir "泡泡.exe"
+            $launched = $false
+            try {
+              $install = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installDir") -Wait -PassThru
+              if ($install.ExitCode -ne 0) { throw "Installer exited $($install.ExitCode)" }
+              if (-not (Test-Path $appPath)) { throw "Expected installed executable not found: $appPath" }
+              if ($env:CREDENTIALS_PRESENT -eq "true") {
+                $appSignature = Get-AuthenticodeSignature $appPath
+                if ($appSignature.Status -ne "Valid") { throw "Installed application signature is $($appSignature.Status)" }
+              }
+              $process = Start-Process -FilePath $appPath -ArgumentList "--user-data-dir=$dataDir" -PassThru
+              Start-Sleep -Seconds 10
+              if ($process.HasExited) { throw "Installed application exited during smoke test" }
+              if (-not (Test-Path (Join-Path $dataDir "db/paopao.sqlite"))) { throw "Installed application did not create its SQLite readiness marker" }
+              $launched = $true
+            } finally {
+              Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -like "$installDir*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+              $uninstaller = Get-ChildItem $installDir -Recurse -Filter "*ninstall*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($uninstaller) {
+                $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList "/S" -Wait -PassThru
+                if ($uninstall.ExitCode -ne 0) { throw "Uninstaller exited $($uninstall.ExitCode)" }
+              }
             }
-            $process = Start-Process -FilePath $appPath -ArgumentList "--user-data-dir=$dataDir" -PassThru
-            Start-Sleep -Seconds 10
-            if ($process.HasExited) { throw "Installed application exited during smoke test" }
-            if (-not (Test-Path (Join-Path $dataDir "db/paopao.sqlite"))) { throw "Installed application did not create its SQLite readiness marker" }
-            $launched = $true
-          } finally {
-            Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -like "$installDir*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-            $uninstaller = Get-ChildItem $installDir -Recurse -Filter "*ninstall*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($uninstaller) {
-              $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList "/S" -Wait -PassThru
-              if ($uninstall.ExitCode -ne 0) { throw "Uninstaller exited $($uninstall.ExitCode)" }
-            }
+            Start-Sleep -Seconds 3
+            if (-not $launched) { throw "Installed application launch was not verified" }
+            if (Test-Path $appPath) { throw "Application executable remains after uninstall" }
+            @("installer=$installer", "application=$appPath", "installDir=$installDir", "sqliteReady=pass", "launch=pass", "uninstall=pass", "userDataPreservedByPolicy=true") | Set-Content desktop-app/release/INSTALL-SMOKE-win.txt
+          } catch {
+            $msg = ($_ | Out-String).Trim() -replace '%', '%25' -replace "`n", '%0A' -replace "`r", ''
+            Write-Error "::error title=Windows install smoke failed::$msg"
+            throw
           }
-          Start-Sleep -Seconds 3
-          if (-not $launched) { throw "Installed application launch was not verified" }
-          if (Test-Path $appPath) { throw "Application executable remains after uninstall" }
-          @("installer=$installer", "application=$appPath", "installDir=$installDir", "sqliteReady=pass", "launch=pass", "uninstall=pass", "userDataPreservedByPolicy=true") | Set-Content desktop-app/release/INSTALL-SMOKE-win.txt
       - name: Generate Windows checksums
         shell: pwsh
         run: |
@@ -241,8 +251,6 @@ jobs:
     outputs:
       verified: ${{ steps.verification.outputs.verified }}
     env:
-      CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-      CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
       APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
       APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
       APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
@@ -258,6 +266,12 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Configure macOS signing credentials
+        if: ${{ needs.policy.outputs.credentials_present == 'true' }}
+        shell: bash
+        run: |
+          echo "CSC_LINK=${{ secrets.MAC_CSC_LINK }}" >> "$GITHUB_ENV"
+          echo "CSC_KEY_PASSWORD=${{ secrets.MAC_CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
       - name: Prepare App Store Connect API key
         if: needs.policy.outputs.credentials_present == 'true'
         shell: bash
