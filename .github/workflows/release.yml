@@ -91,6 +91,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - run: npm run build:packages
       - run: npm run release:verify -- --tag "$RELEASE_TAG"
       - run: npm run format:check
       - run: npm run typecheck
