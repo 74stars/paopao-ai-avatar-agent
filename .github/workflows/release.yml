@@ -218,7 +218,7 @@ jobs:
             @("installer=$installer", "application=$appPath", "installDir=$installDir", "sqliteReady=pass", "launch=pass", "uninstall=pass", "userDataPreservedByPolicy=true") | Set-Content desktop-app/release/INSTALL-SMOKE-win.txt
           } catch {
             $msg = ($_ | Out-String).Trim() -replace '%', '%25' -replace "`n", '%0A' -replace "`r", ''
-            Write-Error "::error title=Windows install smoke failed::$msg"
+            Write-Host "::error title=Windows install smoke failed::$msg"
             throw
           }
       - name: Generate Windows checksums
