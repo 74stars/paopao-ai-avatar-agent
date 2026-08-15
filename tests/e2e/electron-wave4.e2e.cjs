@@ -117,7 +117,11 @@ async function runWave4E2E() {
       electronLog.push(`[renderer:${surface}:error] ${detail}\n`);
     });
     page.on("requestfailed", (request) => {
-      resourceFailures.push({ surface, url: request.url(), error: request.failure()?.errorText || "request failed" });
+      const errorText = request.failure()?.errorText || "request failed";
+      // net::ERR_ABORTED means the browser cancelled/superseded the request
+      // (e.g. an image re-requested during a scene switch), not a load failure.
+      if (errorText === "net::ERR_ABORTED") return;
+      resourceFailures.push({ surface, url: request.url(), error: errorText });
     });
     page.on("response", (response) => {
       if (response.status() >= 400) resourceFailures.push({ surface, url: response.url(), status: response.status() });
