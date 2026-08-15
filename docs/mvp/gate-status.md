@@ -51,18 +51,12 @@ E2E 报告明确限定为 engineering evidence。它证明画布非空、资源�
 - `整理依据`：AI 结论所依据的本条记录或关联记录片段，不再称作笼统的“来源”。
 
 列表标题和预览只能来自用户记录版本，不得使用 AI 摘要覆盖。分类和摘要允许用字段级控件调整；Renderer 不向用户暴露 derivation kind 或原始 JSON。
-## G4 阻塞项
+## G4 产品化发布 — COMPLETE（2026-08-15）
 
-- 可审计提交已全部推送：`main` 与 `origin/main` 同步于最新 HEAD（含 release workflow 改造）；annotated tag `v0.1.0` 已推送并指向同一提交；LFS 对象（183 个 design 二进制）已推送。
-- 历史性 CI 全绿：feishu transport 定时器 unref 修复（Node 22）、chrome-sandbox SUID 修复、Windows spawn/E2E 修复、CSC 凭据按需注入修复；Paopao MVP CI 与 Formal Release verify 均首次全绿。
-- 发布策略已按项目决策调整：**GitHub Release 分发，不使用开发者签名/公证**。release workflow 已移除全部签名/公证门禁（无 secrets 要求），发布仅依赖构建验证（verify + 原生打包 + 干净机冒烟 + 校验和 + 溯源证明）。
-- macOS arm64/x64 与 Windows x64 候选已从 `v0.1.0` 重建（本机与远程各一份 unsigned，SHA-256 见 release inventory）。
-- 遗留执行项：run 11 的 macOS clean-runner smoke 因无界 `wait` 挂起（修复已提交），阻塞同并发组排队；run 14/15（含全部修复与新发布策略）将在其终止后执行，届时完成 Windows install smoke 错误暴露与 macOS smoke 验证。
+- **正式发布已上线**：Paopao v0.1.0 GitHub Release（https://github.com/74stars/paopao-ai-avatar-agent/releases/tag/v0.1.0），发布时间 2026-08-15T18:03:52Z，17 个资产：Windows NSIS 安装包 + blockmap、macOS arm64/x64 DMG/ZIP + blockmap、SHA256SUMS（聚合 + 分平台）、SIGNING-VERIFICATION-*.txt、INSTALL-SMOKE-*.txt。
+- **发布策略（项目决策）**：GitHub Release 分发，不使用开发者签名/公证；release workflow 无签名 secrets 要求，发布门禁为 verify + 原生打包 + 干净机安装/卸载矩阵 + 校验和 + 构建溯源证明（已上传 Rekor 透明日志与仓库，attestations/40929776）。
+- 干净机矩阵全绿：Windows 静默安装→SQLite 就绪→启动→卸载（INSTALL-SMOKE-win.txt）；macOS DMG 挂载→启动→SQLite 就绪→移除（INSTALL-SMOKE-mac.txt）。
+- 历史性 CI 全绿：feishu transport unref 修复（Node 22）、chrome-sandbox SUID、Windows spawn/Capture 可见性修复、CSC 凭据按需注入、ERR_ABORTED 良性化、macOS checksum basename、发布资产精确下载。
+- 可审计提交全部推送：`main` 与 `origin/main` 同步于 `6023e91`；annotated tag `v0.1.0` 指向同一提交；LFS 对象（183 个 design 二进制）已推送。
+- macOS arm64/x64 与 Windows x64 候选均从 `v0.1.0` 重建并核验（本机/远程各一份，SHA-256 见 release inventory；正式发布资产由 release workflow 从 tag 重建）。
 - 当前活书房候选仍需持续截图评审和下一轮美术指导；工程测试不得关闭视觉工作。
-
-## 当前发布产物（内部候选，非公开发布）
-
-- macOS arm64：`Paopao-0.1.0-arm64.dmg`（SHA-256 `3fe57f0894a64dcba9da33c5afa3ef918485f91bfce478c3dd26fe6a72963c4c`）、`Paopao-0.1.0-arm64.zip`（`e8c6bd70d01a0a56275b05dc4dacfdd3146dc1e160df84629425f292e5a947fb`）。
-- macOS x64：`Paopao-0.1.0-x64.dmg`（`7e25f3cca5ac9cee295506b8abc12ffc7433709dc812a3fed7e6d690c08e4aaf`）、`Paopao-0.1.0-x64.zip`（`1ad4463378d5864d62ffc76846e86ca63943033da36ed37cb71fb9232e735191`）。
-- Windows x64（本机交叉）：`Paopao-Setup-0.1.0.exe`（`81c9afef9b1fbf8d3ff250c12e3a38d5c1db0091f8e2c84a41f72deaac81308a`）；远程 Linux 原生：`6e94072c5b3a29372b93d65d297411d5265641ff24de13554ecab6e2856161fc`。
-- 按新发布策略，正式发布将直接以这些（未签名）候选通过 GitHub Release 分发，附 SHA-256 清单与溯源证明。
