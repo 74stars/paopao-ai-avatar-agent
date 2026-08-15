@@ -348,7 +348,9 @@ jobs:
           cleanup_smoke
           trap - EXIT
       - name: Generate macOS checksums
-        run: shasum -a 256 desktop-app/release/*.dmg desktop-app/release/*.zip desktop-app/release/*.blockmap > desktop-app/release/SHA256SUMS-mac.txt
+        run: |
+          cd desktop-app/release
+          shasum -a 256 *.dmg *.zip *.blockmap > SHA256SUMS-mac.txt
       - uses: actions/upload-artifact@v4
         with:
           name: paopao-${{ env.RELEASE_TAG }}-macos-x64-arm64
