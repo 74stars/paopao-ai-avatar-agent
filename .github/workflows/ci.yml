@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           if [ -s /tmp/preload-smoke.log ]; then
-            msg=$(tail -60 /tmp/preload-smoke.log | sed 's/%/%25/g; s///g' | awk '{printf "%%0A%s", $0}')
+            msg=$(tail -60 /tmp/preload-smoke.log | sed 's/%/%25/g; s/\r//g' | awk '{printf "%%0A%s", $0}')
             echo "::error title=preload smoke failed::$msg"
           fi
 
