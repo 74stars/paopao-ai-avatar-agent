@@ -305,6 +305,17 @@ async function runWave4E2E() {
   });
 
   await runCase("Capture declares drag region and preserves control hit targets", async () => {
+    // Show the Capture window explicitly: earlier cases hide it, and Windows
+    // occludes hidden renderers so CDP-driven clicks time out on invisible
+    // elements. The case asserts control hit-targets on a visible surface.
+    await electronApplication.evaluate(async ({ BrowserWindow }) => {
+      const windows = BrowserWindow.getAllWindows();
+      const surface = (window) => {
+        try { return new URL(window.webContents.getURL()).searchParams.get("surface"); } catch { return null; }
+      };
+      windows.find((window) => surface(window) === "capture")?.show();
+    });
+    await waitForSurfaceVisibility("capture", true, 1_000);
     assert.equal(await appRegion(capture, ".capture-window header"), "drag");
     assert.equal(await appRegion(capture, ".capture-window header button"), "no-drag");
     const dragResult = await dragSurfaceFrom("capture", capture.locator(".capture-window header strong"), 28, 20);
